@@ -267,24 +267,24 @@ fun PlayerIconItem(
     }
 }
 
-@Preview(showSystemUi = true)
-@Composable
-fun HomeScreenPrev() {
-    AudiobookHubTheme {
-        HomeScreen(
-            progress = 50f,
-            onProgress = {},
-            isAudioPlaying = true,
-            audioBook = AudioBook(
-                "-", "Title", "Author", "Narrator", 3, null, 0, "",
-                listOf(
-                    Chapter("".toUri(), "Title One", 1, 0),
-                    Chapter("".toUri(), "Title Two", 2, 0),
-                )
-            ),
-            currentPlayingAudio = Chapter("".toUri(), "Title One", 1, 0),
-            onStart = {},
-            onItemClick = {},
-        )
-    }
-}
+//@Preview(showSystemUi = true)
+//@Composable
+//fun HomeScreenPrev() {
+//    AudiobookHubTheme {
+//        HomeScreen(
+//            progress = 50f,
+//            onProgress = {},
+//            isAudioPlaying = true,
+//            audioBook = AudioBook(
+//                "-", "Title", "Author", "Narrator", 3, null, 0, "",
+//                listOf(
+//                    Chapter("".toUri(), "Title One", 1, 0),
+//                    Chapter("".toUri(), "Title Two", 2, 0),
+//                )
+//            ),
+//            currentPlayingAudio = Chapter("".toUri(), "Title One", 1, 0),
+//            onStart = {},
+//            onItemClick = {},
+//        )
+//    }
+//}

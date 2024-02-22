@@ -35,21 +35,23 @@ class BookRepository @Inject constructor(
         val ogienPrzebudzenia = File(bookFile, "ogien_przebudzenia")
         if (!ogienPrzebudzenia.exists()) {
             ogienPrzebudzenia.createNewFile()
-        }
 
-        val fileWriter = ogienPrzebudzenia.bufferedWriter()
-        fileWriter.write("ogien_przebudzenia\n")
-        fileWriter.write("Ogień Przebudzenia\n")
-        fileWriter.write("Anthony Ryan\n")
-        fileWriter.write("Joanna Domanska\n")
-        fileWriter.write("0\n")
-        fileWriter.write("\n")
-        fileWriter.write(
-            "Na rozległych terytoriach kontrolowanych przez Żelazny Syndykat Handlowy najcenniejszym towarem jest smocza krew. Spuszczana z trzymanych w niewoli lub odławianych w dziczy Czerwonych, Zielonych, Niebieskich i Czarnych, po przedestylowaniu służy do wytwarzania eliksirów dających niewiarygodną moc. Tych, którzy potrafią z niej korzystać, nazywa się Błogosławionymi.\n" +
-                    "Mało kto zna jednak prawdę: smocze rody słabną, a gdy wygasną całkowicie, wojna z sąsiednim Cesarstwem Corvuskim będzie nieunikniona. Ostatnią nadzieją Syndykatu są pogłoski o istnieniu innej rasy smoków, znacznie potężniejszej od pozostałych. Nieliczni wybrańcy losu udają się na jej poszukiwania.\n" +
-                    "Claydon Torcreek – drobny złodziejaszek i niezarejestrowany Błogosławiony – po wcieleniu do służby w Protektoracie zostaje wysłany w głąb dzikich, niezbadanych krain w poszukiwaniu stworzenia rodem z legend. Lizanne Lethridge – kobieta-szpieg i znakomita zabójczyni – podczas misji na terytorium wroga musi stawić czoło wielkiemu zagrożeniu. Podporucznik Corrick Hilemore służy na krążowniku Syndykatu, który w pogoni za okrutnymi rozbójnikami na odległych rubieżach napotyka inne, znacznie gorsze niebezpieczeństwo. Kiedy żywoty ludzi i państw spotykają się i przeplatają, a to, co znane, zderza się z nieznanym, wszyscy troje muszą dołożyć wszelkich starań, żeby powstrzymać nadciągającą wojnę, która w przeciwnym razie ich pochłonie."
-        )
-        fileWriter.close()
+            val fileWriter = ogienPrzebudzenia.bufferedWriter()
+            fileWriter.write("ogien_przebudzenia\n") // chapterFolderName
+            fileWriter.write("Ogień Przebudzenia\n") // title
+            fileWriter.write("Anthony Ryan\n") // author
+            fileWriter.write("Joanna Domanska\n") // narrator
+            fileWriter.write("0\n") // score
+            fileWriter.write("0\n") // progress
+            fileWriter.write("1.0\n") // playbackSpeed
+            fileWriter.write("\n")
+            fileWriter.write(
+                "Na rozległych terytoriach kontrolowanych przez Żelazny Syndykat Handlowy najcenniejszym towarem jest smocza krew. Spuszczana z trzymanych w niewoli lub odławianych w dziczy Czerwonych, Zielonych, Niebieskich i Czarnych, po przedestylowaniu służy do wytwarzania eliksirów dających niewiarygodną moc. Tych, którzy potrafią z niej korzystać, nazywa się Błogosławionymi.\n" +
+                        "Mało kto zna jednak prawdę: smocze rody słabną, a gdy wygasną całkowicie, wojna z sąsiednim Cesarstwem Corvuskim będzie nieunikniona. Ostatnią nadzieją Syndykatu są pogłoski o istnieniu innej rasy smoków, znacznie potężniejszej od pozostałych. Nieliczni wybrańcy losu udają się na jej poszukiwania.\n" +
+                        "Claydon Torcreek – drobny złodziejaszek i niezarejestrowany Błogosławiony – po wcieleniu do służby w Protektoracie zostaje wysłany w głąb dzikich, niezbadanych krain w poszukiwaniu stworzenia rodem z legend. Lizanne Lethridge – kobieta-szpieg i znakomita zabójczyni – podczas misji na terytorium wroga musi stawić czoło wielkiemu zagrożeniu. Podporucznik Corrick Hilemore służy na krążowniku Syndykatu, który w pogoni za okrutnymi rozbójnikami na odległych rubieżach napotyka inne, znacznie gorsze niebezpieczeństwo. Kiedy żywoty ludzi i państw spotykają się i przeplatają, a to, co znane, zderza się z nieznanym, wszyscy troje muszą dołożyć wszelkich starań, żeby powstrzymać nadciągającą wojnę, która w przeciwnym razie ich pochłonie."
+            )
+            fileWriter.close()
+        }
 
         val bookFolder = File(context.getExternalFilesDir(""), "ogien_przebudzenia")
         if (!bookFolder.exists()) {
@@ -78,19 +80,21 @@ class BookRepository @Inject constructor(
         val mountain_of_madness = File(bookFile, "mountain_of_madness")
         if (!mountain_of_madness.exists()) {
             mountain_of_madness.createNewFile()
-        }
 
-        val fileWriter = mountain_of_madness.bufferedWriter()
-        fileWriter.write("mountain_of_madness\n")
-        fileWriter.write("At the Mountains of Madness, Version 2\n")
-        fileWriter.write("H. P. Lovecraft\n")
-        fileWriter.write("Mark Nelson\n")
-        fileWriter.write("0\n")
-        fileWriter.write("\n")
-        fileWriter.write(
-            "A scientific expedition to Antartica discovers the ruins of a civilization millions of years old, built by the Elder Things, beings who came to Earth shortly after the formation of the Moon. But are the ancient Elder Things extinct, or do they still roam the Earth? A classic tale of horror by H.P. Lovecraft that first appeared in Astounding Stories in 1936. - Summary by The Narrator"
-        )
-        fileWriter.close()
+            val fileWriter = mountain_of_madness.bufferedWriter()
+            fileWriter.write("mountain_of_madness\n") // chapterFolderName
+            fileWriter.write("At the Mountains of Madness, Version 2\n") // title
+            fileWriter.write("H. P. Lovecraft\n") // author
+            fileWriter.write("Mark Nelson\n") // narrator
+            fileWriter.write("0\n") // score
+            fileWriter.write("0\n") // progress
+            fileWriter.write("1.0\n") // playbackSpeed
+            fileWriter.write("\n")
+            fileWriter.write(
+                "A scientific expedition to Antartica discovers the ruins of a civilization millions of years old, built by the Elder Things, beings who came to Earth shortly after the formation of the Moon. But are the ancient Elder Things extinct, or do they still roam the Earth? A classic tale of horror by H.P. Lovecraft that first appeared in Astounding Stories in 1936. - Summary by The Narrator"
+            )
+            fileWriter.close()
+        }
 
         val bookFolder = File(context.getExternalFilesDir(""), "mountain_of_madness")
         if (!bookFolder.exists()) {
@@ -148,6 +152,21 @@ class BookRepository @Inject constructor(
         return books
     }
 
+    fun saveBookState(book: AudioBook) {
+        val bookData = File(context.getExternalFilesDir(""), "books/${book.chapterFolderName}")
+        val fileWriter = bookData.bufferedWriter()
+        fileWriter.write("${book.chapterFolderName}\n")
+        fileWriter.write("${book.title}\n")
+        fileWriter.write("${book.author}\n")
+        fileWriter.write("${book.narrator}\n")
+        fileWriter.write("${book.score}\n")
+        fileWriter.write("${book.progress}\n")
+        fileWriter.write("${book.playbackSpeed}\n")
+        fileWriter.write("\n")
+        fileWriter.write("${book.description}\n")
+        fileWriter.close()
+    }
+
     private fun getBook(bookData: File): AudioBook {
         val fileReader = bookData.bufferedReader()
         val chapterFolderName = fileReader.readLine()
@@ -155,6 +174,8 @@ class BookRepository @Inject constructor(
         val author = fileReader.readLine()
         val narrator = fileReader.readLine()
         val score = fileReader.readLine().toInt()
+        val progress = fileReader.readLine().toFloat()
+        val playbackSpeed = fileReader.readLine().toFloat()
 
         val stringBuilder = StringBuilder()
         var line: String?
@@ -178,6 +199,8 @@ class BookRepository @Inject constructor(
             score,
             cover,
             duration,
+            progress,
+            playbackSpeed,
             description,
             chapters
         )

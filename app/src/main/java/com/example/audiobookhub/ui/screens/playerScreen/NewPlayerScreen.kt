@@ -145,8 +145,6 @@ fun PlayerScreen(
                 )
 
                 Text(
-//                    text = "${currentChapter.getDurationLeft(chapterProgress)} remaining",
-//                    text = "${currentChapter.getDurationLeft(progress)} remaining",
                     text = "$chapterRemaining remaining",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Normal,
@@ -165,21 +163,13 @@ fun PlayerScreen(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-//        Slider(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(start = 10.dp, end = 10.dp),
-//            value = progress,
-//            onValueChange = { onProgress(it) },
-//            valueRange = 0f..100f
-//        )
-        SeekBarWithDelay(
+        Slider(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 10.dp, end = 10.dp),
-            seekBarValue = progress,
-            valueRange = 0f..100f,
-            onSeekBarValueChanged = { onProgress(it)}
+            value = progress,
+            onValueChange = { onProgress(it) },
+            valueRange = 0f..100f
         )
 
         Row(
@@ -268,30 +258,6 @@ fun PlayerScreen(
     }
 }
 
-@Composable
-fun SeekBarWithDelay(
-    modifier: Modifier = Modifier,
-    seekBarValue: Float,
-    valueRange: ClosedFloatingPointRange<Float>,
-    onSeekBarValueChanged: (Float) -> Unit
-) {
-    var seekPosition by remember { mutableFloatStateOf(seekBarValue) }
-
-    LaunchedEffect(seekPosition) {
-        delay(300)
-        onSeekBarValueChanged(seekPosition)
-    }
-
-    Slider(
-        modifier = modifier,
-        value = seekPosition,
-        onValueChange = { newValue ->
-            seekPosition = newValue
-        },
-        valueRange = valueRange
-    )
-}
-
 @Preview(showBackground = true)
 @Composable
 fun PlayerScreenPreview() {
@@ -312,6 +278,8 @@ fun PlayerScreenPreview() {
             score = 3,
             cover = null,
             duration = 10000000,
+            progress = 0f,
+            playbackSpeed = 1f,
             description = "Sample Description",
             chapters = listOf(
                 Chapter(

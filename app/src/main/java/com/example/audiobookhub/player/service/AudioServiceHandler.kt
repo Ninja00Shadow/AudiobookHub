@@ -1,6 +1,5 @@
 package com.example.audiobookhub.player.service
 
-import android.util.Log
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -73,7 +72,6 @@ class AudioServiceHandler @Inject constructor(
                     }
 
                     else -> {
-//                        exoPlayer.seekToDefaultPosition(selectedAudioIndex)
                         exoPlayer.seekTo(selectedAudioIndex, seekPosition)
 
                         _audioState.value = AudioState.Playing(
@@ -86,12 +84,24 @@ class AudioServiceHandler @Inject constructor(
             }
 
             PlayerEvent.SeekToAndChange -> {
+                delay(100)
+
                 exoPlayer.seekTo(selectedAudioIndex, seekPosition)
                 _audioState.value = AudioState.Playing(
                     isPlaying = true
                 )
                 exoPlayer.playWhenReady = true
                 startProgressUpdate()
+            }
+
+            PlayerEvent.InitializeWithParams -> {
+                delay(100)
+
+                exoPlayer.seekTo(selectedAudioIndex, seekPosition)
+                _audioState.value = AudioState.Playing(
+                    isPlaying = false
+                )
+                exoPlayer.playWhenReady = false
             }
 
             PlayerEvent.Stop -> stopProgressUpdate()
@@ -166,6 +176,7 @@ sealed class PlayerEvent {
     data object SeekTo : PlayerEvent()
     data object Stop : PlayerEvent()
     data object SeekToAndChange : PlayerEvent()
+    data object InitializeWithParams : PlayerEvent()
     data class ChangeSpeed(val speed: Float) : PlayerEvent()
     data class UpdateProgress(val newProgress: Float) : PlayerEvent()
 }

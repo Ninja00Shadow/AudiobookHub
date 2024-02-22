@@ -1,5 +1,6 @@
 package com.example.audiobookhub.ui.screens.playerScreen
 
+import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.util.Log
 import androidx.compose.runtime.getValue
@@ -37,6 +38,8 @@ private val bookDummy = AudioBook(
     3,
     Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888),
     0,
+    0f,
+    1f,
     "",
     emptyList(),
 )
@@ -53,7 +56,7 @@ private val chapterDummy = Chapter(
 class AudioViewModel @Inject constructor(
     private val audioServiceHandler: AudioServiceHandler,
     private val repository: BookRepository,
-    savedStateHandle: SavedStateHandle
+    private val sharedPref: SharedPreferences,
 ) : ViewModel() {
     var chapterDuration by mutableLongStateOf(0L)
     var bookProgress by mutableFloatStateOf(0f)
@@ -79,6 +82,7 @@ class AudioViewModel @Inject constructor(
             chapterTimeStamps.add(acc)
             acc + chapter.duration
         }
+        currentSelectedAudio = audioBook.chapters[findChapterIndexByProgress(audioBook.progress)]
     }
 
     init {
@@ -88,13 +92,22 @@ class AudioViewModel @Inject constructor(
                     AudioState.Initial -> _uiState.value = UIState.Initial
                     is AudioState.Buffering -> calculateProgressValue(mediaState.progress)
                     is AudioState.Playing -> isPlaying = mediaState.isPlaying
-                    is AudioState.Progress -> calculateProgressValue(mediaState.progress)
+                    is AudioState.Progress -> {
+                        calculateProgressValue(mediaState.progress)
+                        audioBook.progress = bookProgress
+                        saveBookState()
+                    }
                     is AudioState.CurrentPlaying -> {
                         currentSelectedAudio = audioBook.chapters[mediaState.mediaItemIndex]
                     }
 
                     is AudioState.Ready -> {
                         chapterDuration = mediaState.duration
+
+                        bookProgress = audioBook.progress
+                        speed = audioBook.playbackSpeed
+                        initializeAudioService(bookProgress)
+
                         _uiState.value = UIState.Ready
                     }
                 }
@@ -104,10 +117,17 @@ class AudioViewModel @Inject constructor(
         }
     }
 
+    private fun saveBookState() {
+        repository.saveBookState(audioBook)
+    }
+
     private fun loadAudioData() {
         viewModelScope.launch {
             val audio = repository.getBookByName("Ogień Przebudzenia")
             audioBook = audio
+            Log.d("AudioViewModel", "loadAudioData: $audio")
+            Log.d("AudioViewModel", "progress: ${audioBook.progress}")
+            Log.d("AudioViewModel", "index: ${findChapterIndexByProgress(audioBook.progress)}")
             currentSelectedAudio = audio.chapters.first()
             setMediaItems()
         }
@@ -182,24 +202,8 @@ class AudioViewModel @Inject constructor(
             }
 
             is UIEvents.SeekTo -> {
-//                audioServiceHandler.onPlayerEvents(
-//                    PlayerEvent.SeekTo,
-//                    seekPosition = ((chapterDuration * uiEvents.position) / 100f).toLong()
-//                )
                 if (uiEvents.position > 0f) {
-                    Log.d("AudioViewModel", "chapterTimeStamps: $chapterTimeStamps")
-                    Log.d("AudioViewModel", "bookDuration: ${(bookDuration * uiEvents.position)/100f}")
-                    val chapterIndex = chapterTimeStamps.indexOfLast { it < (bookDuration * uiEvents.position)/100f }
-                    val chapterSeekPosition = (bookDuration * uiEvents.position)/100f - chapterTimeStamps[chapterIndex]
-
-                    Log.d("AudioViewModel", "chapterIndex: $chapterIndex")
-                    Log.d("AudioViewModel", "chapterSeekPosition: $chapterSeekPosition")
-
-                    audioServiceHandler.onPlayerEvents(
-                        PlayerEvent.SeekToAndChange,
-                        selectedAudioIndex = chapterIndex,
-                        seekPosition = chapterSeekPosition.toLong()
-                    )
+                    seekToByProgress(uiEvents.position)
                 }
                 else {
                     audioServiceHandler.onPlayerEvents(
@@ -218,12 +222,12 @@ class AudioViewModel @Inject constructor(
             }
 
             is UIEvents.UpdateProgress -> {
-//                audioServiceHandler.onPlayerEvents(
-//                    PlayerEvent.UpdateProgress(
-//                        uiEvents.newProgress
-//                    )
-//                )
-//                bookProgress = uiEvents.newProgress
+                audioServiceHandler.onPlayerEvents(
+                    PlayerEvent.UpdateProgress(
+                        uiEvents.newProgress
+                    )
+                )
+                bookProgress = uiEvents.newProgress
             }
 
             is UIEvents.SpeedChange -> {
@@ -231,8 +235,36 @@ class AudioViewModel @Inject constructor(
                 audioServiceHandler.onPlayerEvents(
                     PlayerEvent.ChangeSpeed(uiEvents.speed)
                 )
+                audioBook.playbackSpeed = uiEvents.speed
             }
         }
+    }
+
+    private suspend fun seekToByProgress(progress: Float) {
+        val chapterIndex = findChapterIndexByProgress(progress)
+        val chapterSeekPosition = (bookDuration * progress)/100f - chapterTimeStamps[chapterIndex]
+
+        audioServiceHandler.onPlayerEvents(
+            PlayerEvent.SeekToAndChange,
+            selectedAudioIndex = chapterIndex,
+            seekPosition = chapterSeekPosition.toLong()
+        )
+    }
+
+    private suspend fun initializeAudioService(progress: Float) {
+        val chapterIndex = findChapterIndexByProgress(progress)
+        val chapterSeekPosition = (bookDuration * progress)/100f - chapterTimeStamps[chapterIndex]
+
+        audioServiceHandler.onPlayerEvents(
+            PlayerEvent.InitializeWithParams,
+            selectedAudioIndex = chapterIndex,
+            seekPosition = chapterSeekPosition.toLong()
+        )
+    }
+
+    private fun findChapterIndexByProgress(progress: Float): Int {
+        if (progress == 0f) return 0
+        return chapterTimeStamps.indexOfLast { it < (bookDuration * progress)/100f }
     }
 
     override fun onCleared() {

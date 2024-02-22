@@ -1,6 +1,7 @@
 package com.example.audiobookhub.dependencyInjection
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
@@ -65,5 +66,13 @@ object MediaModule {
         exoPlayer: ExoPlayer
     ): AudioServiceHandler {
         return AudioServiceHandler(exoPlayer)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSharedPref(
+        @ApplicationContext context: Context
+    ): SharedPreferences {
+        return context.getSharedPreferences("AudioBookHub", Context.MODE_PRIVATE)
     }
 }
