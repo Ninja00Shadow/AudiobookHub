@@ -264,6 +264,13 @@ class BookRepository @Inject constructor(
         return books.find { it.title == bookName }!!
     }
 
+    fun getBookByFolderName(bookFolderName: String): AudioBook {
+        if (books.isEmpty()) {
+            getBooks()
+        }
+        return books.find { it.chapterFolderName == bookFolderName }!!
+    }
+
     companion object {
         private val INSTANCE: BookRepository? = null
 

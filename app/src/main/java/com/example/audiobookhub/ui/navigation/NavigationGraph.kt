@@ -7,11 +7,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.audiobookhub.ui.screens.bookshelf.BookListScreen
 import com.example.audiobookhub.ui.screens.bookshelf.BookListViewModel
+import com.example.audiobookhub.ui.screens.bookshelf.UiEvents
 import com.example.audiobookhub.ui.screens.playerScreen.AudioViewModel
 import com.example.audiobookhub.ui.screens.playerScreen.PlayerScreen
 import com.example.audiobookhub.ui.screens.playerScreen.UIEvents
 import com.example.audiobookhub.ui.screens.settings.SettingsScreen
-import kotlinx.coroutines.delay
 
 @Composable
 fun NavigationGraph(
@@ -70,7 +70,12 @@ fun NavigationGraph(
             Routes.BOOK_LIST_SCREEN
         ) {
             BookListScreen(
-                books = bookListViewModel.books
+                books = bookListViewModel.books,
+                onBookSelected = {
+                    bookListViewModel.onUiEvent(UiEvents.SelectAudiobook, it)
+                    playerViewModel.loadAudiobook()
+                    navController.navigate(Routes.AUDIO_PLAYER_SCREEN)
+                }
             )
         }
     }

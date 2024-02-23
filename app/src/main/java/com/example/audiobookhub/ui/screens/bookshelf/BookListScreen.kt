@@ -1,7 +1,9 @@
 package com.example.audiobookhub.ui.screens.bookshelf
 
 import android.content.res.Resources.Theme
+import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -25,15 +27,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.audiobookhub.R
 import com.example.audiobookhub.data.model.AudioBook
 
 @Composable
 fun BookListScreen(
-    books: List<AudioBook> = emptyList()
+    books: List<AudioBook> = emptyList(),
+    onBookSelected: (AudioBook) -> Unit = {}
 ) {
     Surface (
         modifier = Modifier.fillMaxSize()
@@ -43,14 +48,20 @@ fun BookListScreen(
             columns = GridCells.Fixed(2),
             ) {
             itemsIndexed (books) { index, book ->
-                BookCard(book = book)
+                BookCard(
+                    book = book,
+                    onBookSelected = onBookSelected
+                    )
             }
         }
     }
 }
 
 @Composable
-fun BookCard(book: AudioBook) {
+fun BookCard(
+    book: AudioBook,
+    onBookSelected: (AudioBook) -> Unit
+) {
     Column (
         modifier = Modifier
             .fillMaxSize()
@@ -60,7 +71,10 @@ fun BookCard(book: AudioBook) {
     ) {
         Card (
             modifier = Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .clickable {
+                           onBookSelected(book)
+                },
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface
             )
@@ -69,7 +83,10 @@ fun BookCard(book: AudioBook) {
                 modifier = Modifier
                     .fillMaxSize()
                     .requiredSize(150.dp),
-                bitmap = book.getCover(),
+                bitmap = book.getCover() ?: BitmapFactory.decodeResource(
+                    LocalContext.current.resources,
+                    R.drawable.no_image_available
+                ).asImageBitmap(),
                 contentDescription = "Book cover",
             )
         }
@@ -87,5 +104,21 @@ fun BookCard(book: AudioBook) {
 @Preview
 @Composable
 fun BookListScreenPreview() {
-    BookListScreen()
+    BookListScreen(
+        books = listOf(
+            AudioBook(
+                chapterFolderName = "chapterFolderName",
+                title = "title",
+                author = "author",
+                narrator = "narrator",
+                score = 5,
+                cover = null,
+                duration = 0,
+                progress = 0f,
+                playbackSpeed = 1f,
+                description = "description",
+                chapters = emptyList(),
+            )
+        )
+    )
 }

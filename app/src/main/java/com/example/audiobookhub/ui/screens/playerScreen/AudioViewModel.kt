@@ -2,14 +2,12 @@ package com.example.audiobookhub.ui.screens.playerScreen
 
 import android.content.SharedPreferences
 import android.graphics.Bitmap
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.net.toUri
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
@@ -68,21 +66,14 @@ class AudioViewModel @Inject constructor(
     var currentSelectedAudio by mutableStateOf(chapterDummy)
     var audioBook by mutableStateOf(bookDummy)
 
-    private val bookDuration: Long
-    private val chapterTimeStamps = mutableListOf<Long>()
+    private var bookDuration: Long = 0
+    private var chapterTimeStamps = mutableListOf<Long>()
 
     private val _uiState: MutableStateFlow<UIState> = MutableStateFlow(UIState.Initial)
     val uiState: StateFlow<UIState> = _uiState.asStateFlow()
 
     init {
-        loadAudioData()
-
-        bookDuration = audioBook.chapters.fold(0L) { acc, chapter -> acc + chapter.duration }
-        audioBook.chapters.fold(0L) { acc, chapter ->
-            chapterTimeStamps.add(acc)
-            acc + chapter.duration
-        }
-        currentSelectedAudio = audioBook.chapters[findChapterIndexByProgress(audioBook.progress)]
+        loadAudiobook()
     }
 
     init {
@@ -121,15 +112,23 @@ class AudioViewModel @Inject constructor(
         repository.saveBookState(audioBook)
     }
 
-    private fun loadAudioData() {
+    fun loadAudiobook() {
         viewModelScope.launch {
-            val audio = repository.getBookByName("Ogień Przebudzenia")
-            audioBook = audio
-            Log.d("AudioViewModel", "loadAudioData: $audio")
-            Log.d("AudioViewModel", "progress: ${audioBook.progress}")
-            Log.d("AudioViewModel", "index: ${findChapterIndexByProgress(audioBook.progress)}")
-            currentSelectedAudio = audio.chapters.first()
-            setMediaItems()
+            sharedPref.getString("currentBook", null)?.let {
+                val audio = repository.getBookByFolderName(it)
+                audioBook = audio
+                currentSelectedAudio = audio.chapters.first()
+                setMediaItems()
+
+                bookDuration = audioBook.chapters.fold(0L) { acc, chapter -> acc + chapter.duration }
+                val timeStamps = mutableListOf<Long>()
+                audioBook.chapters.fold(0L) { acc, chapter ->
+                    timeStamps.add(acc)
+                    acc + chapter.duration
+                }
+                chapterTimeStamps = timeStamps
+                currentSelectedAudio = audioBook.chapters[findChapterIndexByProgress(audioBook.progress)]
+            }
         }
     }
 
@@ -273,7 +272,6 @@ class AudioViewModel @Inject constructor(
         }
         super.onCleared()
     }
-
 }
 
 sealed class UIEvents {
