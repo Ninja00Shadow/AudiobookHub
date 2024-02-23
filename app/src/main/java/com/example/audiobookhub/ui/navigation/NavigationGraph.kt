@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import com.example.audiobookhub.ui.screens.bookshelf.BookListScreen
 import com.example.audiobookhub.ui.screens.bookshelf.BookListViewModel
 import com.example.audiobookhub.ui.screens.bookshelf.UiEvents
+import com.example.audiobookhub.ui.screens.details.AudiobookDetailsScreen
 import com.example.audiobookhub.ui.screens.playerScreen.AudioViewModel
 import com.example.audiobookhub.ui.screens.playerScreen.PlayerScreen
 import com.example.audiobookhub.ui.screens.playerScreen.UIEvents
@@ -55,7 +56,9 @@ fun NavigationGraph(
                     playerViewModel.onUiEvents(UIEvents.ChangeChapter(it))
                     startService()
                 },
-                onMore = { }
+                onMore = {
+                    navController.navigate(Routes.AUDIO_BOOK_DETAILS_SCREEN)
+                }
             )
         }
 
@@ -89,5 +92,22 @@ fun NavigationGraph(
                 }
             )
         }
+
+        composable(
+            Routes.AUDIO_BOOK_DETAILS_SCREEN
+        ) {
+            AudiobookDetailsScreen(
+                audiobook = playerViewModel.audioBook,
+                formattedDuration = playerViewModel.formatDuration(),
+                score = playerViewModel.audioBook.score,
+                onScoreChanged = {
+
+                },
+                goBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
     }
 }

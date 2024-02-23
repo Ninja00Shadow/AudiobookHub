@@ -305,6 +305,17 @@ class AudioViewModel @Inject constructor(
             initializeAudioService(audioBook.progress)
         }
     }
+
+    fun formatDuration(): String {
+        val hours = TimeUnit.HOURS.convert(bookDuration, TimeUnit.MILLISECONDS)
+        val minutes = TimeUnit.MINUTES.convert(bookDuration, TimeUnit.MILLISECONDS) % 60
+
+        return if (hours > 0) {
+            String.format("%dh %dmin", hours, minutes)
+        } else {
+            String.format("%dmin", minutes)
+        }
+    }
 }
 
 sealed class UIEvents {
