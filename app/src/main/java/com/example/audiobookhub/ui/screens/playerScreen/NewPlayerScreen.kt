@@ -120,7 +120,7 @@ fun PlayerScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(400.dp)
+                .height(300.dp)
                 .padding(horizontal = 15.dp),
         ) {
             Card(

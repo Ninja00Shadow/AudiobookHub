@@ -2,6 +2,7 @@ package com.example.audiobookhub.ui.screens.playerScreen
 
 import android.content.SharedPreferences
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -20,6 +21,7 @@ import com.example.audiobookhub.player.service.AudioServiceHandler
 import com.example.audiobookhub.player.service.AudioState
 import com.example.audiobookhub.player.service.PlayerEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,7 +36,7 @@ private val bookDummy = AudioBook(
     "",
     "",
     3,
-    Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888),
+    null,
     0,
     0f,
     1f,
@@ -56,6 +58,8 @@ class AudioViewModel @Inject constructor(
     private val repository: BookRepository,
     private val sharedPref: SharedPreferences,
 ) : ViewModel() {
+    var isEmpty by mutableStateOf(false)
+
     var chapterDuration by mutableLongStateOf(0L)
     var bookProgress by mutableFloatStateOf(0f)
     var timeElapsedString by mutableStateOf("00:00")
@@ -88,6 +92,7 @@ class AudioViewModel @Inject constructor(
                         audioBook.progress = bookProgress
                         saveBookState()
                     }
+
                     is AudioState.CurrentPlaying -> {
                         currentSelectedAudio = audioBook.chapters[mediaState.mediaItemIndex]
                     }
@@ -112,22 +117,36 @@ class AudioViewModel @Inject constructor(
         repository.saveBookState(audioBook)
     }
 
-    fun loadAudiobook() {
+    private fun loadAudiobook() {
         viewModelScope.launch {
-            sharedPref.getString("currentBook", null)?.let {
-                val audio = repository.getBookByFolderName(it)
+            val currentBook = sharedPref.getString("currentBook", null)
+            Log.d("AudioViewModel", "loadAudiobook: $currentBook")
+
+            if (currentBook == null) {
+                audioBook = bookDummy
+                currentSelectedAudio = chapterDummy
+                isEmpty = true
+//                setMediaItems()
+            } else {
+                isEmpty = false
+                val audio = repository.getBookByFolderName(currentBook)
                 audioBook = audio
-                currentSelectedAudio = audio.chapters.first()
+//                currentSelectedAudio = audio.chapters.first()
                 setMediaItems()
 
-                bookDuration = audioBook.chapters.fold(0L) { acc, chapter -> acc + chapter.duration }
+                bookDuration =
+                    audioBook.chapters.fold(0L) { acc, chapter -> acc + chapter.duration }
                 val timeStamps = mutableListOf<Long>()
                 audioBook.chapters.fold(0L) { acc, chapter ->
                     timeStamps.add(acc)
                     acc + chapter.duration
                 }
                 chapterTimeStamps = timeStamps
-                currentSelectedAudio = audioBook.chapters[findChapterIndexByProgress(audioBook.progress)]
+                currentSelectedAudio =
+                    audioBook.chapters[findChapterIndexByProgress(audioBook.progress)]
+                bookProgress = audioBook.progress
+
+                Log.d("AudioViewModel", "loadAudiobook: $bookProgress")
             }
         }
     }
@@ -155,10 +174,10 @@ class AudioViewModel @Inject constructor(
     private fun calculateProgressValue(currentProgress: Long) {
         bookProgress =
             if (currentProgress > 0) {
-                val bookProgress = chapterTimeStamps[currentSelectedAudio.number - 1] + currentProgress
+                val bookProgress =
+                    chapterTimeStamps[currentSelectedAudio.number - 1] + currentProgress
                 ((bookProgress.toFloat() / bookDuration.toFloat()) * 100f)
-            }
-            else 0f
+            } else 0f
         timeElapsedString = formatTimeElapsed(currentProgress)
         timeRemainingString = formatTimeRemaining(currentProgress)
         chapterRemainingTimeString = formatChapterTimeLeft(currentProgress)
@@ -174,7 +193,8 @@ class AudioViewModel @Inject constructor(
     }
 
     private fun formatTimeRemaining(duration: Long): String {
-        val timeRemaining = bookDuration - (chapterTimeStamps[currentSelectedAudio.number - 1] + duration)
+        val timeRemaining =
+            bookDuration - (chapterTimeStamps[currentSelectedAudio.number - 1] + duration)
 
         val hours = TimeUnit.HOURS.convert(timeRemaining, TimeUnit.MILLISECONDS)
         val minutes = TimeUnit.MINUTES.convert(timeRemaining, TimeUnit.MILLISECONDS) % 60
@@ -191,57 +211,58 @@ class AudioViewModel @Inject constructor(
     }
 
     fun onUiEvents(uiEvents: UIEvents) = viewModelScope.launch {
-        when (uiEvents) {
-            UIEvents.Backward -> audioServiceHandler.onPlayerEvents(PlayerEvent.Backward)
-            UIEvents.Forward -> audioServiceHandler.onPlayerEvents(PlayerEvent.Forward)
-            is UIEvents.PlayPause -> {
-                audioServiceHandler.onPlayerEvents(
-                    PlayerEvent.PlayPause
-                )
-            }
-
-            is UIEvents.SeekTo -> {
-                if (uiEvents.position > 0f) {
-                    seekToByProgress(uiEvents.position)
-                }
-                else {
+        if (!isEmpty) {
+            when (uiEvents) {
+                UIEvents.Backward -> audioServiceHandler.onPlayerEvents(PlayerEvent.Backward)
+                UIEvents.Forward -> audioServiceHandler.onPlayerEvents(PlayerEvent.Forward)
+                is UIEvents.PlayPause -> {
                     audioServiceHandler.onPlayerEvents(
-                        PlayerEvent.SeekToAndChange,
-                        selectedAudioIndex = 0,
-                        seekPosition = 0
+                        PlayerEvent.PlayPause
                     )
                 }
-            }
 
-            is UIEvents.ChangeChapter -> {
-                audioServiceHandler.onPlayerEvents(
-                    PlayerEvent.SelectedAudioChange,
-                    selectedAudioIndex = uiEvents.index
-                )
-            }
+                is UIEvents.SeekTo -> {
+                    if (uiEvents.position > 0f) {
+                        seekToByProgress(uiEvents.position)
+                    } else {
+                        audioServiceHandler.onPlayerEvents(
+                            PlayerEvent.SeekToAndChange,
+                            selectedAudioIndex = 0,
+                            seekPosition = 0
+                        )
+                    }
+                }
 
-            is UIEvents.UpdateProgress -> {
-                audioServiceHandler.onPlayerEvents(
-                    PlayerEvent.UpdateProgress(
-                        uiEvents.newProgress
+                is UIEvents.ChangeChapter -> {
+                    audioServiceHandler.onPlayerEvents(
+                        PlayerEvent.SelectedAudioChange,
+                        selectedAudioIndex = uiEvents.index
                     )
-                )
-                bookProgress = uiEvents.newProgress
-            }
+                }
 
-            is UIEvents.SpeedChange -> {
-                speed = uiEvents.speed
-                audioServiceHandler.onPlayerEvents(
-                    PlayerEvent.ChangeSpeed(uiEvents.speed)
-                )
-                audioBook.playbackSpeed = uiEvents.speed
+                is UIEvents.UpdateProgress -> {
+                    audioServiceHandler.onPlayerEvents(
+                        PlayerEvent.UpdateProgress(
+                            uiEvents.newProgress
+                        )
+                    )
+                    bookProgress = uiEvents.newProgress
+                }
+
+                is UIEvents.SpeedChange -> {
+                    speed = uiEvents.speed
+                    audioServiceHandler.onPlayerEvents(
+                        PlayerEvent.ChangeSpeed(uiEvents.speed)
+                    )
+                    audioBook.playbackSpeed = uiEvents.speed
+                }
             }
         }
     }
 
     private suspend fun seekToByProgress(progress: Float) {
         val chapterIndex = findChapterIndexByProgress(progress)
-        val chapterSeekPosition = (bookDuration * progress)/100f - chapterTimeStamps[chapterIndex]
+        val chapterSeekPosition = (bookDuration * progress) / 100f - chapterTimeStamps[chapterIndex]
 
         audioServiceHandler.onPlayerEvents(
             PlayerEvent.SeekToAndChange,
@@ -252,7 +273,9 @@ class AudioViewModel @Inject constructor(
 
     private suspend fun initializeAudioService(progress: Float) {
         val chapterIndex = findChapterIndexByProgress(progress)
-        val chapterSeekPosition = (bookDuration * progress)/100f - chapterTimeStamps[chapterIndex]
+        val chapterSeekPosition = (bookDuration * progress) / 100f - chapterTimeStamps[chapterIndex]
+
+        Log.d("AudioViewModel", "initializeAudioService: $chapterIndex, $chapterSeekPosition")
 
         audioServiceHandler.onPlayerEvents(
             PlayerEvent.InitializeWithParams,
@@ -263,7 +286,7 @@ class AudioViewModel @Inject constructor(
 
     private fun findChapterIndexByProgress(progress: Float): Int {
         if (progress == 0f) return 0
-        return chapterTimeStamps.indexOfLast { it < (bookDuration * progress)/100f }
+        return chapterTimeStamps.indexOfLast { it < (bookDuration * progress) / 100f }
     }
 
     override fun onCleared() {
@@ -271,6 +294,16 @@ class AudioViewModel @Inject constructor(
             audioServiceHandler.onPlayerEvents(PlayerEvent.Stop)
         }
         super.onCleared()
+    }
+
+    fun bookChanged() {
+        Log.d("AudioViewModel", "bookChanged() called")
+        loadAudiobook()
+        Log.d("AudioViewModel", "bookChanged1: $bookProgress")
+        viewModelScope.launch {
+            Log.d("AudioViewModel", "bookChanged2: $bookProgress")
+            initializeAudioService(audioBook.progress)
+        }
     }
 }
 

@@ -24,9 +24,6 @@ import javax.inject.Singleton
 class BookRepository @Inject constructor(
     @ApplicationContext val context: Context
 ) {
-
-    private var books = listOf<AudioBook>()
-
     init {
         val bookFile = File(context.getExternalFilesDir(""), "books")
         if (!bookFile.exists()) {
@@ -147,8 +144,6 @@ class BookRepository @Inject constructor(
             }
         }
 
-        this.books = books
-
         return books
     }
 
@@ -258,17 +253,11 @@ class BookRepository @Inject constructor(
     }
 
     fun getBookByName(bookName: String): AudioBook {
-        if (books.isEmpty()) {
-            getBooks()
-        }
-        return books.find { it.title == bookName }!!
+        return getBooks().find { it.title == bookName }!!
     }
 
     fun getBookByFolderName(bookFolderName: String): AudioBook {
-        if (books.isEmpty()) {
-            getBooks()
-        }
-        return books.find { it.chapterFolderName == bookFolderName }!!
+        return getBooks().find { it.chapterFolderName == bookFolderName }!!
     }
 
     companion object {

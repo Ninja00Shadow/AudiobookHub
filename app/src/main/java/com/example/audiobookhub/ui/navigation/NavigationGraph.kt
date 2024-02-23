@@ -73,7 +73,8 @@ fun NavigationGraph(
                 books = bookListViewModel.books,
                 onBookSelected = {
                     bookListViewModel.onUiEvent(UiEvents.SelectAudiobook, it)
-                    playerViewModel.loadAudiobook()
+//                    playerViewModel.loadAudiobook()
+                    playerViewModel.bookChanged()
                     navController.navigate(Routes.AUDIO_PLAYER_SCREEN)
                 }
             )
