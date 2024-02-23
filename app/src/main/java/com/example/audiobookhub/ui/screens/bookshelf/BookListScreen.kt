@@ -18,7 +18,9 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,24 +36,45 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.audiobookhub.R
 import com.example.audiobookhub.data.model.AudioBook
+import com.example.audiobookhub.ui.BottomPlayer
 
 @Composable
 fun BookListScreen(
-    books: List<AudioBook> = emptyList(),
-    onBookSelected: (AudioBook) -> Unit = {}
+    books: List<AudioBook>,
+    onBookSelected: (AudioBook) -> Unit = {},
+    currentBook: AudioBook? = null,
+    isPlaying: Boolean = false,
+    onPlayPause: () -> Unit = {},
+    timeRemaining: String = "",
+    onBottomPlayerClick: () -> Unit = {},
 ) {
-    Surface (
-        modifier = Modifier.fillMaxSize()
+    Scaffold (
+        bottomBar = {
+            if (currentBook != null) {
+                BottomPlayer(
+                    audiobook = currentBook,
+                    isPlaying = isPlaying,
+                    onPlayPause = onPlayPause,
+                    timeRemaining = timeRemaining,
+                    onClick = onBottomPlayerClick
+                )
+            }
+        }
     ) {
-
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
+        Surface (
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it)
+        ) {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
             ) {
-            itemsIndexed (books) { index, book ->
-                BookCard(
-                    book = book,
-                    onBookSelected = onBookSelected
+                itemsIndexed (books) { index, book ->
+                    BookCard(
+                        book = book,
+                        onBookSelected = onBookSelected
                     )
+                }
             }
         }
     }
@@ -73,7 +96,7 @@ fun BookCard(
             modifier = Modifier
                 .fillMaxSize()
                 .clickable {
-                           onBookSelected(book)
+                    onBookSelected(book)
                 },
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface
@@ -93,6 +116,14 @@ fun BookCard(
 
         Spacer(modifier = Modifier.height(5.dp))
 
+        LinearProgressIndicator(
+            progress = book.progress / 100,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(5.dp),
+            color = MaterialTheme.colorScheme.primary
+        )
+
         Text(
             text = book.title,
             textAlign = TextAlign.Center,
@@ -104,21 +135,24 @@ fun BookCard(
 @Preview
 @Composable
 fun BookListScreenPreview() {
+    val book = AudioBook(
+        chapterFolderName = "chapterFolderName",
+        title = "title",
+        author = "author",
+        narrator = "narrator",
+        score = 5,
+        cover = null,
+        duration = 0,
+        progress = 50f,
+        playbackSpeed = 1f,
+        description = "description",
+        chapters = emptyList(),
+    )
+    
     BookListScreen(
         books = listOf(
-            AudioBook(
-                chapterFolderName = "chapterFolderName",
-                title = "title",
-                author = "author",
-                narrator = "narrator",
-                score = 5,
-                cover = null,
-                duration = 0,
-                progress = 0f,
-                playbackSpeed = 1f,
-                description = "description",
-                chapters = emptyList(),
-            )
-        )
+            book,
+        ),
+        currentBook = book,
     )
 }

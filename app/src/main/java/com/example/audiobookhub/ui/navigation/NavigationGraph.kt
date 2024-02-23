@@ -69,12 +69,22 @@ fun NavigationGraph(
         composable(
             Routes.BOOK_LIST_SCREEN
         ) {
+            bookListViewModel.onUiEvents(UiEvents.LoadBooks)
             BookListScreen(
                 books = bookListViewModel.books,
                 onBookSelected = {
-                    bookListViewModel.onUiEvent(UiEvents.SelectAudiobook, it)
+                    bookListViewModel.onUiEvents(UiEvents.SelectAudiobook(it))
 //                    playerViewModel.loadAudiobook()
                     playerViewModel.bookChanged()
+                    navController.navigate(Routes.AUDIO_PLAYER_SCREEN)
+                },
+                currentBook = playerViewModel.audioBook,
+                isPlaying = playerViewModel.isPlaying,
+                onPlayPause = {
+                    playerViewModel.onUiEvents(UIEvents.PlayPause)
+                },
+                timeRemaining = playerViewModel.timeRemainingString,
+                onBottomPlayerClick = {
                     navController.navigate(Routes.AUDIO_PLAYER_SCREEN)
                 }
             )

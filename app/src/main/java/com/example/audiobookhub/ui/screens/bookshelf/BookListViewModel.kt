@@ -12,15 +12,22 @@ class BookListViewModel @Inject constructor(
     private val repository: BookRepository,
     private val sharedPreferences: SharedPreferences
 ): ViewModel() {
-    val books = repository.getBooks()
+    var books = repository.getBooks()
 
 
-    fun onUiEvent(event: UiEvents, book: AudioBook) {
+    fun onUiEvents(event: UiEvents) {
         when(event) {
+            UiEvents.LoadBooks -> {
+                loadBooks()
+            }
             is UiEvents.SelectAudiobook -> {
-                changeCurrentBook(book)
+                changeCurrentBook(event.book)
             }
         }
+    }
+
+    private fun loadBooks() {
+        books = repository.getBooks()
     }
 
     private fun changeCurrentBook(book: AudioBook) {
@@ -32,5 +39,6 @@ class BookListViewModel @Inject constructor(
 
 
 sealed class UiEvents {
-    data object SelectAudiobook : UiEvents()
+    data object LoadBooks : UiEvents()
+    data class SelectAudiobook(val book: AudioBook) : UiEvents()
 }
