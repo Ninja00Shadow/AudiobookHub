@@ -2,6 +2,7 @@ package com.example.audiobookhub.ui
 
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
@@ -18,6 +20,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -37,6 +40,7 @@ import com.example.audiobookhub.ui.screens.playerScreen.PlayerIconItem
 fun BottomPlayer(
     audiobook: AudioBook,
     isPlaying: Boolean,
+    progress: Float,
     onPlayPause: () -> Unit,
     timeRemaining: String,
     onClick: () -> Unit
@@ -80,21 +84,30 @@ fun BottomPlayer(
                 ) {
                     Text(
                         text = audiobook.title,
-                        fontSize = 16.sp,
+                        fontSize = 15.sp,
                         fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
                     )
 
                     Text(
                         text = "Left: $timeRemaining",
-                        fontSize = 14.sp
+                        fontSize = 13.sp
                     )
                 }
             }
+
+            LinearProgressIndicator(
+                progress = progress /100f,
+                modifier = Modifier
+                    .height(4.dp)
+                    .weight(1f)
+                    .padding(horizontal = 8.dp),
+            )
 
             IconButton(
                 onClick = { onPlayPause() },
                 modifier = Modifier
                     .padding(end = 8.dp)
+                    .fillMaxHeight()
             ) {
                 Icon(
                     imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
@@ -127,6 +140,7 @@ fun BottomPlayerPreview() {
             chapters = emptyList()
         ),
         isPlaying = true,
+        progress = 50f,
         onPlayPause = {},
         timeRemaining = "1:30:00",
         onClick = {}

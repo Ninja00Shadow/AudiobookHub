@@ -105,6 +105,15 @@ fun NavigationGraph(
                 },
                 goBack = {
                     navController.popBackStack()
+                },
+                isPlaying = playerViewModel.isPlaying,
+                progress = playerViewModel.bookProgress,
+                onPlayPause = {
+                    playerViewModel.onUiEvents(UIEvents.PlayPause)
+                },
+                timeRemaining = playerViewModel.timeRemainingString,
+                onPlayerClick = {
+                    navController.navigate(Routes.AUDIO_PLAYER_SCREEN)
                 }
             )
         }

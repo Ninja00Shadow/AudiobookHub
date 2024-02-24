@@ -54,6 +54,7 @@ fun BookListScreen(
                 BottomPlayer(
                     audiobook = currentBook,
                     isPlaying = isPlaying,
+                    progress = currentBook.progress,
                     onPlayPause = onPlayPause,
                     timeRemaining = timeRemaining,
                     onClick = onBottomPlayerClick

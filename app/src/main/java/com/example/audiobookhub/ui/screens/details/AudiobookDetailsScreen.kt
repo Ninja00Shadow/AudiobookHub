@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.audiobookhub.R
 import com.example.audiobookhub.data.model.AudioBook
+import com.example.audiobookhub.ui.BottomPlayer
 import com.example.audiobookhub.ui.RatingBar
 
 @Composable
@@ -42,87 +44,106 @@ fun AudiobookDetailsScreen(
     formattedDuration: String,
     score: Int,
     onScoreChanged: (Int) -> Unit,
-    goBack: () -> Unit
+    goBack: () -> Unit,
+    isPlaying: Boolean,
+    progress: Float,
+    onPlayPause: () -> Unit,
+    timeRemaining: String,
+    onPlayerClick: () -> Unit
 ) {
-    Surface (
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+    Scaffold (
+        bottomBar = {
+            BottomPlayer(
+                audiobook = audiobook,
+                isPlaying = isPlaying,
+                progress = progress,
+                onPlayPause = onPlayPause,
+                timeRemaining = timeRemaining,
+                onClick = onPlayerClick
+            )
+        }
     ) {
-        Column (
+        Surface (
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = 10.dp, top = 10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .verticalScroll(rememberScrollState())
+                .padding(it)
         ) {
-            Row (
+            Column (
                 modifier = Modifier
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start
+                    .fillMaxSize()
+                    .padding(start = 10.dp, top = 10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(
+                Row (
                     modifier = Modifier
-                        .size(26.dp)
-                        .clickable {
-                            goBack()
-                        },
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back",
-                )
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Icon(
+                        modifier = Modifier
+                            .size(26.dp)
+                            .clickable {
+                                goBack()
+                            },
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Back",
+                    )
 
-                Spacer(modifier = Modifier.width(10.dp))
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    Text(
+                        text = audiobook.title,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Image(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    bitmap = audiobook.getCover() ?: BitmapFactory.decodeResource(
+                        LocalContext.current.resources,
+                        R.drawable.no_image_available
+                    ).asImageBitmap(),
+                    contentDescription = "Cover",
+                )
 
                 Text(
-                    text = audiobook.title,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
+                    text = "Author: ${audiobook.author}",
+                    fontSize = 18.sp,
+                )
+
+                Text(
+                    text = "Reads: ${audiobook.narrator}",
+                    fontSize = 18.sp,
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                RatingBar(
+                    rating = score.toFloat(),
+                    isIndicator = true,
+                    onStarClick = {
+                        onScoreChanged(it)
+                    },
+                )
+
+                Text(
+                    text = "Duration: $formattedDuration",
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Divider()
+
+                Text(
+                    text = audiobook.description,
+                    style = MaterialTheme.typography.bodyLarge,
                 )
             }
-
-            Image(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp),
-                bitmap = audiobook.getCover() ?: BitmapFactory.decodeResource(
-                    LocalContext.current.resources,
-                    R.drawable.no_image_available
-                ).asImageBitmap(),
-                contentDescription = "Cover",
-            )
-
-            Text(
-                text = "Author: ${audiobook.author}",
-                fontSize = 18.sp,
-            )
-
-            Text(
-                text = "Reads: ${audiobook.narrator}",
-                fontSize = 18.sp,
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            RatingBar(
-                rating = score.toFloat(),
-                isIndicator = true,
-                onStarClick = {
-                    onScoreChanged(it)
-                },
-            )
-
-            Text(
-                text = "Duration: $formattedDuration",
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Divider()
-
-            Text(
-                text = audiobook.description,
-                style = MaterialTheme.typography.bodyLarge,
-            )
         }
     }
 }
@@ -150,6 +171,11 @@ fun PreviewAudiobookDetailsScreen() {
         formattedDuration = "10h 10m",
         score = 4,
         onScoreChanged = {},
-        goBack = {}
+        goBack = {},
+        isPlaying = true,
+        progress = 50f,
+        onPlayPause = {},
+        timeRemaining = "10h 10m",
+        onPlayerClick = {}
     )
 }

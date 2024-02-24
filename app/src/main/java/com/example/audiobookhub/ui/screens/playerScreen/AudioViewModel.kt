@@ -163,6 +163,7 @@ class AudioViewModel @Inject constructor(
                         .setAlbumArtist(audioBook.narrator)
                         .setDisplayTitle(audioBook.title)
                         .setSubtitle("Read by ${audioBook.narrator}")
+//                        .setArtworkUri(audioBook.cover?.toUri())
                         .build()
                 )
                 .build()
