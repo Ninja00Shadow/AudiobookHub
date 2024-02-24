@@ -36,7 +36,7 @@ private val bookDummy = AudioBook(
     "",
     "",
     3,
-    null,
+    "".toUri(),
     0,
     0f,
     1f,
@@ -162,8 +162,9 @@ class AudioViewModel @Inject constructor(
                         .setWriter(audioBook.author)
                         .setAlbumArtist(audioBook.narrator)
                         .setDisplayTitle(audioBook.title)
+                        .setAlbumTitle(audioBook.title)
                         .setSubtitle("Read by ${audioBook.narrator}")
-//                        .setArtworkUri(audioBook.cover?.toUri())
+                        .setArtworkUri(audioBook.cover)
                         .build()
                 )
                 .build()

@@ -34,6 +34,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
+import coil.compose.AsyncImage
 import com.example.audiobookhub.R
 import com.example.audiobookhub.data.model.AudioBook
 import com.example.audiobookhub.ui.BottomPlayer
@@ -103,14 +105,21 @@ fun BookCard(
                 containerColor = MaterialTheme.colorScheme.surface
             )
         ) {
-            Image(
+//            Image(
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .requiredSize(150.dp),
+//                bitmap = book.getCover() ?: BitmapFactory.decodeResource(
+//                    LocalContext.current.resources,
+//                    R.drawable.no_image_available
+//                ).asImageBitmap(),
+//                contentDescription = "Book cover",
+//            )
+            AsyncImage(
                 modifier = Modifier
                     .fillMaxSize()
                     .requiredSize(150.dp),
-                bitmap = book.getCover() ?: BitmapFactory.decodeResource(
-                    LocalContext.current.resources,
-                    R.drawable.no_image_available
-                ).asImageBitmap(),
+                model = book.cover,
                 contentDescription = "Book cover",
             )
         }
@@ -142,7 +151,7 @@ fun BookListScreenPreview() {
         author = "author",
         narrator = "narrator",
         score = 5,
-        cover = null,
+        cover = "".toUri(),
         duration = 0,
         progress = 50f,
         playbackSpeed = 1f,

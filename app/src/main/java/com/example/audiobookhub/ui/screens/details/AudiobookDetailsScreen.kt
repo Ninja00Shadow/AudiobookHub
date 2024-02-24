@@ -1,13 +1,11 @@
 package com.example.audiobookhub.ui.screens.details
 
-import android.graphics.BitmapFactory
-import androidx.compose.foundation.Image
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,16 +25,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.audiobookhub.R
 import com.example.audiobookhub.data.model.AudioBook
 import com.example.audiobookhub.ui.BottomPlayer
 import com.example.audiobookhub.ui.RatingBar
+
 
 @Composable
 fun AudiobookDetailsScreen(
@@ -100,15 +98,22 @@ fun AudiobookDetailsScreen(
                     )
                 }
 
-                Image(
+//                Image(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(horizontal = 20.dp),
+//                    bitmap = audiobook.getCover() ?: BitmapFactory.decodeResource(
+//                        LocalContext.current.resources,
+//                        R.drawable.no_image_available
+//                    ).asImageBitmap(),
+//                    contentDescription = "Cover",
+//                )
+                AsyncImage(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp),
-                    bitmap = audiobook.getCover() ?: BitmapFactory.decodeResource(
-                        LocalContext.current.resources,
-                        R.drawable.no_image_available
-                    ).asImageBitmap(),
-                    contentDescription = "Cover",
+                    model = audiobook.cover,
+                    contentDescription = "Cover"
                 )
 
                 Text(
@@ -158,10 +163,7 @@ fun PreviewAudiobookDetailsScreen() {
             author = "Anthony Ryan",
             narrator = "Joanna Domańska",
             score = 4,
-            cover = BitmapFactory.decodeResource(
-                LocalContext.current.resources,
-                R.drawable.ogien_przebudzenia_cover
-            ),
+            cover = Uri.parse("android.resource://com.example.audiobookhub/" + R.drawable.ogien_przebudzenia_cover),
             duration = 100000,
             progress = 0.5f,
             playbackSpeed = 1.0f,

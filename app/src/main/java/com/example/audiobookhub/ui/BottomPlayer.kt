@@ -1,23 +1,20 @@
 package com.example.audiobookhub.ui
 
 import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -32,9 +29,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.audiobookhub.R
 import com.example.audiobookhub.data.model.AudioBook
-import com.example.audiobookhub.ui.screens.playerScreen.PlayerIconItem
+
 
 @Composable
 fun BottomPlayer(
@@ -65,15 +63,22 @@ fun BottomPlayer(
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
+//                Image(
+//                    modifier = Modifier
+//                        .fillMaxHeight()
+//                        .padding(4.dp),
+//                    bitmap = audiobook.getCover() ?: BitmapFactory.decodeResource(
+//                        LocalContext.current.resources,
+//                        R.drawable.no_image_available
+//                    ).asImageBitmap(),
+//                    contentDescription = "Cover",
+//                )
+                AsyncImage(
                     modifier = Modifier
                         .fillMaxHeight()
                         .padding(4.dp),
-                    bitmap = audiobook.getCover() ?: BitmapFactory.decodeResource(
-                        LocalContext.current.resources,
-                        R.drawable.no_image_available
-                    ).asImageBitmap(),
-                    contentDescription = "Cover",
+                    model = audiobook.cover,
+                    contentDescription = "Cover"
                 )
 
                 Column (
@@ -129,10 +134,10 @@ fun BottomPlayerPreview() {
             author = "",
             narrator = "",
             score = 4,
-            cover = BitmapFactory.decodeResource(
-                LocalContext.current.resources,
-                R.drawable.ogien_przebudzenia_cover
-            ),
+            cover = Uri.Builder()
+                .scheme("res")
+                .path(java.lang.String.valueOf(R.drawable.ogien_przebudzenia_cover))
+                .build(),
             duration = 100000,
             progress = 0.5f,
             playbackSpeed = 1.0f,

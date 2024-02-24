@@ -19,6 +19,7 @@ fun NavigationGraph(
     navController: NavHostController,
     playerViewModel: AudioViewModel,
     bookListViewModel: BookListViewModel,
+    isServiceRunning: Boolean,
     startService: () -> Unit
 ) {
 
@@ -46,13 +47,14 @@ fun NavigationGraph(
                 currentChapter = playerViewModel.currentSelectedAudio,
                 onStart = {
                     playerViewModel.onUiEvents(UIEvents.PlayPause)
+                    startService()
                 },
                 onForward = {
                     playerViewModel.onUiEvents(UIEvents.Forward)
                     Log.d("TAG", "onForward: ")
                 },
                 onBackward = { playerViewModel.onUiEvents(UIEvents.Backward) },
-                onItemClick = {
+                onChapterClick = {
                     playerViewModel.onUiEvents(UIEvents.ChangeChapter(it))
                     startService()
                 },

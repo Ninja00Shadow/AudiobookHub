@@ -62,6 +62,7 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 playerViewModel = playerViewModel,
                                 bookListViewModel = bookListViewModel,
+                                isServiceRunning = isServiceRunning,
                                 startService = { startService() }
                             )
                         }
@@ -80,6 +81,14 @@ class MainActivity : ComponentActivity() {
                 startService(intent)
             }
             isServiceRunning = true
+        }
+    }
+
+    private fun stopService() {
+        if (isServiceRunning) {
+            val intent = Intent(this, AudioService::class.java)
+            stopService(intent)
+            isServiceRunning = false
         }
     }
 

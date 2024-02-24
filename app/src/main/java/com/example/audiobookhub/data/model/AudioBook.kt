@@ -2,6 +2,7 @@ package com.example.audiobookhub.data.model
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.painterResource
@@ -15,15 +16,14 @@ data class AudioBook (
     val author: String,
     val narrator: String,
     val score: Int,
-    val cover: Bitmap?,
+    val cover: Uri,
     val duration: Int,
     var progress: Float,
     var playbackSpeed: Float,
     val description: String,
     val chapters: List<Chapter>
 ) {
-    fun getCover(): ImageBitmap? {
-        return cover?.asImageBitmap()
-
-    }
+//    fun getCover(): ImageBitmap? {
+//        return cover?.asImageBitmap()
+//    }
 }

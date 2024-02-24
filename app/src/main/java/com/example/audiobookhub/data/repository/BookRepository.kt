@@ -5,15 +5,11 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.net.Uri
-import android.util.Log
 import androidx.core.net.toUri
 import com.example.audiobookhub.R
-import com.example.audiobookhub.data.model.Audio
 import com.example.audiobookhub.data.model.AudioBook
 import com.example.audiobookhub.data.model.Chapter
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -184,7 +180,7 @@ class BookRepository @Inject constructor(
 
         val chapters = getBookChapters(chapterFolder)
         val duration = getBookDuration(chapters)
-        val cover = if (chapters.isNotEmpty()) getCover(chapters[0]) else Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
+        val coverBitmap = getCover(chapters[0])
 
         val book = AudioBook(
             chapterFolderName,
@@ -192,7 +188,7 @@ class BookRepository @Inject constructor(
             author,
             narrator,
             score,
-            cover,
+            cover = saveCoverToUri(coverBitmap, chapterFolderName),
             duration,
             progress,
             playbackSpeed,
@@ -225,6 +221,19 @@ class BookRepository @Inject constructor(
             }
         }
         return chapters
+    }
+
+    private fun saveCoverToUri(cover: Bitmap?, chapterFolderName: String): Uri {
+        val coverFile = File(context.getExternalFilesDir(""), "$chapterFolderName/cover.jpg")
+        val fileOutputStream = FileOutputStream(coverFile)
+        if (cover != null) {
+            cover.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream)
+        } else {
+            val noCover = BitmapFactory.decodeResource(context.resources, R.drawable.no_image_available)
+            noCover.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream)
+        }
+        fileOutputStream.close()
+        return coverFile.toUri()
     }
 
     private fun getBookDuration(chapters: List<Chapter>): Int {
