@@ -269,6 +269,22 @@ class BookRepository @Inject constructor(
         return getBooks().find { it.chapterFolderName == bookFolderName }!!
     }
 
+    fun updateScore(audioBook: AudioBook) {
+        val bookData = File(context.getExternalFilesDir(""), "books/${audioBook.chapterFolderName}")
+        val fileReader = bookData.bufferedReader()
+
+        fileReader.readLine()
+        fileReader.readLine()
+        fileReader.readLine()
+        fileReader.readLine()
+        fileReader.readLine()
+        val progress = fileReader.readLine().toFloat()
+        val playbackSpeed = fileReader.readLine().toFloat()
+
+        val updatedBook = audioBook.copy(progress = progress, playbackSpeed = playbackSpeed)
+        saveBookState(updatedBook)
+    }
+
     companion object {
         private val INSTANCE: BookRepository? = null
 

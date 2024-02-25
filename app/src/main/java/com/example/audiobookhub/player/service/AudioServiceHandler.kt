@@ -34,6 +34,7 @@ class AudioServiceHandler @Inject constructor(
     }
 
     fun setMediaItemList(mediaItems: List<MediaItem>) {
+        Log.d("MediaMetadata", "(ASH)mediaItem: ${mediaItems[0].mediaMetadata.displayTitle}")
         exoPlayer.setMediaItems(mediaItems)
         exoPlayer.prepare()
     }

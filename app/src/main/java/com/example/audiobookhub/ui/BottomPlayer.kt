@@ -1,6 +1,5 @@
 package com.example.audiobookhub.ui
 
-import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -63,16 +62,6 @@ fun BottomPlayer(
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-//                Image(
-//                    modifier = Modifier
-//                        .fillMaxHeight()
-//                        .padding(4.dp),
-//                    bitmap = audiobook.getCover() ?: BitmapFactory.decodeResource(
-//                        LocalContext.current.resources,
-//                        R.drawable.no_image_available
-//                    ).asImageBitmap(),
-//                    contentDescription = "Cover",
-//                )
                 AsyncImage(
                     modifier = Modifier
                         .fillMaxHeight()

@@ -3,12 +3,16 @@ package com.example.audiobookhub.ui.navigation
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.example.audiobookhub.ui.screens.bookshelf.BookListScreen
 import com.example.audiobookhub.ui.screens.bookshelf.BookListViewModel
-import com.example.audiobookhub.ui.screens.bookshelf.UiEvents
+import com.example.audiobookhub.ui.screens.bookshelf.ShelfUiEvents
 import com.example.audiobookhub.ui.screens.details.AudiobookDetailsScreen
+import com.example.audiobookhub.ui.screens.details.AudiobookDetailsViewModel
+import com.example.audiobookhub.ui.screens.details.DetailsUiEvents
 import com.example.audiobookhub.ui.screens.playerScreen.AudioViewModel
 import com.example.audiobookhub.ui.screens.playerScreen.PlayerScreen
 import com.example.audiobookhub.ui.screens.playerScreen.UIEvents
@@ -19,7 +23,7 @@ fun NavigationGraph(
     navController: NavHostController,
     playerViewModel: AudioViewModel,
     bookListViewModel: BookListViewModel,
-    isServiceRunning: Boolean,
+    bookDetailsViewModel: AudiobookDetailsViewModel,
     startService: () -> Unit
 ) {
 
@@ -59,7 +63,7 @@ fun NavigationGraph(
                     startService()
                 },
                 onMore = {
-                    navController.navigate(Routes.AUDIO_BOOK_DETAILS_SCREEN)
+                    navController.navigate("${Routes.AUDIO_BOOK_DETAILS_SCREEN}/${playerViewModel.audioBook.chapterFolderName}")
                 }
             )
         }
@@ -74,19 +78,22 @@ fun NavigationGraph(
         composable(
             Routes.BOOK_LIST_SCREEN
         ) {
-            bookListViewModel.onUiEvents(UiEvents.LoadBooks)
+            bookListViewModel.onUiEvents(ShelfUiEvents.LoadBooks)
             BookListScreen(
                 books = bookListViewModel.books,
                 onBookSelected = {
-                    bookListViewModel.onUiEvents(UiEvents.SelectAudiobook(it))
-//                    playerViewModel.loadAudiobook()
+                    bookListViewModel.onUiEvents(ShelfUiEvents.SelectAudiobook(it))
                     playerViewModel.bookChanged()
                     navController.navigate(Routes.AUDIO_PLAYER_SCREEN)
                 },
-                currentBook = playerViewModel.audioBook,
+                onDetailsClick = {
+                    navController.navigate("${Routes.AUDIO_BOOK_DETAILS_SCREEN}/${it.chapterFolderName}")
+                },
+                currentBook = playerViewModel.getAudioBookOrNull(),
                 isPlaying = playerViewModel.isPlaying,
                 onPlayPause = {
                     playerViewModel.onUiEvents(UIEvents.PlayPause)
+                    startService()
                 },
                 timeRemaining = playerViewModel.timeRemainingString,
                 onBottomPlayerClick = {
@@ -96,22 +103,32 @@ fun NavigationGraph(
         }
 
         composable(
-            Routes.AUDIO_BOOK_DETAILS_SCREEN
-        ) {
-            AudiobookDetailsScreen(
-                audiobook = playerViewModel.audioBook,
-                formattedDuration = playerViewModel.formatDuration(),
-                score = playerViewModel.audioBook.score,
-                onScoreChanged = {
+            "${Routes.AUDIO_BOOK_DETAILS_SCREEN}/{${Routes.AUDIO_BOOK_FILE}}",
+            arguments = listOf(
+                navArgument(Routes.AUDIO_BOOK_FILE) {
+                    type = NavType.StringType
+                }
+            )
+        ) { backStackEntry ->
+            val fileName = backStackEntry.arguments?.getString(Routes.AUDIO_BOOK_FILE)
+            bookDetailsViewModel.onUiEvents(DetailsUiEvents.LoadAudioBook(fileName!!))
 
+            AudiobookDetailsScreen(
+                audiobook = bookDetailsViewModel.audioBook,
+                formattedDuration = bookDetailsViewModel.formatDuration(),
+                score = bookDetailsViewModel.audioBook.score,
+                onScoreChanged = {
+                    bookDetailsViewModel.onUiEvents(DetailsUiEvents.UpdateScore(it))
                 },
                 goBack = {
                     navController.popBackStack()
                 },
+                currentAudioBook = playerViewModel.getAudioBookOrNull(),
                 isPlaying = playerViewModel.isPlaying,
                 progress = playerViewModel.bookProgress,
                 onPlayPause = {
                     playerViewModel.onUiEvents(UIEvents.PlayPause)
+                    startService()
                 },
                 timeRemaining = playerViewModel.timeRemainingString,
                 onPlayerClick = {

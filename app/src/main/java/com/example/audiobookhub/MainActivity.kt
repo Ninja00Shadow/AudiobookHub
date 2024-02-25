@@ -24,6 +24,7 @@ import com.example.audiobookhub.ui.screens.playerScreen.AudioViewModel
 import com.example.audiobookhub.ui.navigation.NavigationGraph
 import com.example.audiobookhub.ui.navigation.bottomNavigation.BottomNavigationBar
 import com.example.audiobookhub.ui.screens.bookshelf.BookListViewModel
+import com.example.audiobookhub.ui.screens.details.AudiobookDetailsViewModel
 import com.example.audiobookhub.ui.theme.AudiobookHubTheme
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
@@ -33,6 +34,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val playerViewModel: AudioViewModel by viewModels()
     private val bookListViewModel: BookListViewModel by viewModels()
+    private val bookDetailsViewModel: AudiobookDetailsViewModel by viewModels()
     private var isServiceRunning = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,7 +64,7 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 playerViewModel = playerViewModel,
                                 bookListViewModel = bookListViewModel,
-                                isServiceRunning = isServiceRunning,
+                                bookDetailsViewModel = bookDetailsViewModel,
                                 startService = { startService() }
                             )
                         }

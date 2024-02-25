@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -56,6 +57,7 @@ class AudioNotificationManager @Inject constructor(
 
     @UnstableApi
     private fun buildNotification(mediaSession: MediaSession) {
+        Log.d("MediaMetadata", "buildNotification: ${mediaSession.player.mediaMetadata.displayTitle}")
         PlayerNotificationManager.Builder(
             context,
             NOTIFICATION_ID,

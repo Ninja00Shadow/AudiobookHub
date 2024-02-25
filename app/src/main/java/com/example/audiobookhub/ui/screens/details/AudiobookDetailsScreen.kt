@@ -43,37 +43,39 @@ fun AudiobookDetailsScreen(
     score: Int,
     onScoreChanged: (Int) -> Unit,
     goBack: () -> Unit,
+    currentAudioBook: AudioBook? = null,
     isPlaying: Boolean,
     progress: Float,
     onPlayPause: () -> Unit,
     timeRemaining: String,
     onPlayerClick: () -> Unit
 ) {
-    Scaffold (
+    Scaffold(
         bottomBar = {
-            BottomPlayer(
-                audiobook = audiobook,
-                isPlaying = isPlaying,
-                progress = progress,
-                onPlayPause = onPlayPause,
-                timeRemaining = timeRemaining,
-                onClick = onPlayerClick
-            )
+            if (currentAudioBook != null)
+                BottomPlayer(
+                    audiobook = currentAudioBook,
+                    isPlaying = isPlaying,
+                    progress = progress,
+                    onPlayPause = onPlayPause,
+                    timeRemaining = timeRemaining,
+                    onClick = onPlayerClick
+                )
         }
     ) {
-        Surface (
+        Surface(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(it)
         ) {
-            Column (
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(start = 10.dp, top = 10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row (
+                Row(
                     modifier = Modifier
                         .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -98,16 +100,6 @@ fun AudiobookDetailsScreen(
                     )
                 }
 
-//                Image(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(horizontal = 20.dp),
-//                    bitmap = audiobook.getCover() ?: BitmapFactory.decodeResource(
-//                        LocalContext.current.resources,
-//                        R.drawable.no_image_available
-//                    ).asImageBitmap(),
-//                    contentDescription = "Cover",
-//                )
                 AsyncImage(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -130,9 +122,9 @@ fun AudiobookDetailsScreen(
 
                 RatingBar(
                     rating = score.toFloat(),
-                    isIndicator = true,
-                    onStarClick = {
-                        onScoreChanged(it)
+                    isIndicator = false,
+                    onStarClick = {score ->
+                        onScoreChanged(score)
                     },
                 )
 
@@ -156,24 +148,27 @@ fun AudiobookDetailsScreen(
 @Preview
 @Composable
 fun PreviewAudiobookDetailsScreen() {
+    val book = AudioBook(
+        chapterFolderName = "",
+        title = "Ogień Przebudzenia",
+        author = "Anthony Ryan",
+        narrator = "Joanna Domańska",
+        score = 4,
+        cover = Uri.parse("android.resource://com.example.audiobookhub/" + R.drawable.ogien_przebudzenia_cover),
+        duration = 100000,
+        progress = 0.5f,
+        playbackSpeed = 1.0f,
+        description = "",
+        chapters = emptyList()
+    )
+
     AudiobookDetailsScreen(
-        audiobook = AudioBook(
-            chapterFolderName = "",
-            title = "Ogień Przebudzenia",
-            author = "Anthony Ryan",
-            narrator = "Joanna Domańska",
-            score = 4,
-            cover = Uri.parse("android.resource://com.example.audiobookhub/" + R.drawable.ogien_przebudzenia_cover),
-            duration = 100000,
-            progress = 0.5f,
-            playbackSpeed = 1.0f,
-            description = "",
-            chapters = emptyList()
-        ),
+        audiobook = book,
         formattedDuration = "10h 10m",
         score = 4,
         onScoreChanged = {},
         goBack = {},
+        currentAudioBook = book,
         isPlaying = true,
         progress = 50f,
         onPlayPause = {},

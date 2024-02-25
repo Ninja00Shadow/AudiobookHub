@@ -6,6 +6,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,8 +17,11 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -31,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,12 +48,13 @@ import com.example.audiobookhub.ui.BottomPlayer
 @Composable
 fun BookListScreen(
     books: List<AudioBook>,
-    onBookSelected: (AudioBook) -> Unit = {},
-    currentBook: AudioBook? = null,
-    isPlaying: Boolean = false,
-    onPlayPause: () -> Unit = {},
-    timeRemaining: String = "",
-    onBottomPlayerClick: () -> Unit = {},
+    onBookSelected: (AudioBook) -> Unit,
+    onDetailsClick: (AudioBook) -> Unit,
+    currentBook: AudioBook?,
+    isPlaying: Boolean,
+    onPlayPause: () -> Unit,
+    timeRemaining: String,
+    onBottomPlayerClick: () -> Unit,
 ) {
     Scaffold (
         bottomBar = {
@@ -75,7 +81,8 @@ fun BookListScreen(
                 itemsIndexed (books) { index, book ->
                     BookCard(
                         book = book,
-                        onBookSelected = onBookSelected
+                        onBookSelected = onBookSelected,
+                        onDetailsClick = onDetailsClick
                     )
                 }
             }
@@ -86,6 +93,7 @@ fun BookListScreen(
 @Composable
 fun BookCard(
     book: AudioBook,
+    onDetailsClick: (AudioBook) -> Unit,
     onBookSelected: (AudioBook) -> Unit
 ) {
     Column (
@@ -105,16 +113,6 @@ fun BookCard(
                 containerColor = MaterialTheme.colorScheme.surface
             )
         ) {
-//            Image(
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                    .requiredSize(150.dp),
-//                bitmap = book.getCover() ?: BitmapFactory.decodeResource(
-//                    LocalContext.current.resources,
-//                    R.drawable.no_image_available
-//                ).asImageBitmap(),
-//                contentDescription = "Book cover",
-//            )
             AsyncImage(
                 modifier = Modifier
                     .fillMaxSize()
@@ -134,11 +132,25 @@ fun BookCard(
             color = MaterialTheme.colorScheme.primary
         )
 
-        Text(
-            text = book.title,
-            textAlign = TextAlign.Center,
-            fontSize = 20.sp
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                modifier = Modifier.weight(1f),
+                text = book.title,
+                textAlign = TextAlign.Center,
+                fontSize = 20.sp,
+            )
+
+            Icon(
+                modifier = Modifier.clickable { onDetailsClick(book) },
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = "Show details",
+            )
+        }
     }
 }
 
@@ -147,7 +159,7 @@ fun BookCard(
 fun BookListScreenPreview() {
     val book = AudioBook(
         chapterFolderName = "chapterFolderName",
-        title = "title",
+        title = "Ogień Przebudzenia",
         author = "author",
         narrator = "narrator",
         score = 5,
@@ -163,6 +175,12 @@ fun BookListScreenPreview() {
         books = listOf(
             book,
         ),
+        onBookSelected = {},
+        onDetailsClick = {},
         currentBook = book,
+        isPlaying = true,
+        onPlayPause = {},
+        timeRemaining = "1:30:00",
+        onBottomPlayerClick = {}
     )
 }

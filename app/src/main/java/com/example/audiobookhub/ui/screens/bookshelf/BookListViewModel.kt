@@ -15,12 +15,12 @@ class BookListViewModel @Inject constructor(
     var books = repository.getBooks()
 
 
-    fun onUiEvents(event: UiEvents) {
+    fun onUiEvents(event: ShelfUiEvents) {
         when(event) {
-            UiEvents.LoadBooks -> {
+            ShelfUiEvents.LoadBooks -> {
                 loadBooks()
             }
-            is UiEvents.SelectAudiobook -> {
+            is ShelfUiEvents.SelectAudiobook -> {
                 changeCurrentBook(event.book)
             }
         }
@@ -38,7 +38,7 @@ class BookListViewModel @Inject constructor(
 }
 
 
-sealed class UiEvents {
-    data object LoadBooks : UiEvents()
-    data class SelectAudiobook(val book: AudioBook) : UiEvents()
+sealed class ShelfUiEvents {
+    data object LoadBooks : ShelfUiEvents()
+    data class SelectAudiobook(val book: AudioBook) : ShelfUiEvents()
 }

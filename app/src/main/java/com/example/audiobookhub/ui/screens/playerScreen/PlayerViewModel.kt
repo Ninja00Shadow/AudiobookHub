@@ -1,7 +1,6 @@
 package com.example.audiobookhub.ui.screens.playerScreen
 
 import android.content.SharedPreferences
-import android.graphics.Bitmap
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -21,7 +20,6 @@ import com.example.audiobookhub.player.service.AudioServiceHandler
 import com.example.audiobookhub.player.service.AudioState
 import com.example.audiobookhub.player.service.PlayerEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -117,6 +115,17 @@ class AudioViewModel @Inject constructor(
         repository.saveBookState(audioBook)
     }
 
+    fun getAudioBookOrNull(): AudioBook? {
+        if (audioBook == bookDummy) {
+            return null
+        }
+        return audioBook
+    }
+
+    fun isAudioBookEmpty(): Boolean {
+        return audioBook == bookDummy
+    }
+
     private fun loadAudiobook() {
         viewModelScope.launch {
             val currentBook = sharedPref.getString("currentBook", null)
@@ -154,21 +163,22 @@ class AudioViewModel @Inject constructor(
     private fun setMediaItems() {
         audioBook.chapters.map { chapter ->
             MediaItem.Builder()
-                .setUri(chapter.uri)
-                .setMediaId(chapter.number.toString())
                 .setMediaMetadata(
                     MediaMetadata.Builder()
                         .setMediaType(MediaMetadata.MEDIA_TYPE_AUDIO_BOOK_CHAPTER)
                         .setWriter(audioBook.author)
                         .setAlbumArtist(audioBook.narrator)
-                        .setDisplayTitle(audioBook.title)
+                        .setDisplayTitle(chapter.name)
                         .setAlbumTitle(audioBook.title)
                         .setSubtitle("Read by ${audioBook.narrator}")
                         .setArtworkUri(audioBook.cover)
                         .build()
                 )
+                .setUri(chapter.uri)
+                .setMediaId(chapter.number.toString())
                 .build()
         }.also {
+            Log.d("MediaMetadata", "(PVM)mediaItem: ${it[0].mediaMetadata.displayTitle}")
             audioServiceHandler.setMediaItemList(it)
         }
     }
@@ -277,8 +287,6 @@ class AudioViewModel @Inject constructor(
         val chapterIndex = findChapterIndexByProgress(progress)
         val chapterSeekPosition = (bookDuration * progress) / 100f - chapterTimeStamps[chapterIndex]
 
-        Log.d("AudioViewModel", "initializeAudioService: $chapterIndex, $chapterSeekPosition")
-
         audioServiceHandler.onPlayerEvents(
             PlayerEvent.InitializeWithParams,
             selectedAudioIndex = chapterIndex,
@@ -305,17 +313,6 @@ class AudioViewModel @Inject constructor(
         viewModelScope.launch {
             Log.d("AudioViewModel", "bookChanged2: $bookProgress")
             initializeAudioService(audioBook.progress)
-        }
-    }
-
-    fun formatDuration(): String {
-        val hours = TimeUnit.HOURS.convert(bookDuration, TimeUnit.MILLISECONDS)
-        val minutes = TimeUnit.MINUTES.convert(bookDuration, TimeUnit.MILLISECONDS) % 60
-
-        return if (hours > 0) {
-            String.format("%dh %dmin", hours, minutes)
-        } else {
-            String.format("%dmin", minutes)
         }
     }
 }
