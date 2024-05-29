@@ -2,6 +2,7 @@ package com.example.audiobookhub.ui.navigation
 
 import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -111,7 +112,9 @@ fun NavigationGraph(
             )
         ) { backStackEntry ->
             val fileName = backStackEntry.arguments?.getString(Routes.AUDIO_BOOK_FILE)
-            bookDetailsViewModel.onUiEvents(DetailsUiEvents.LoadAudioBook(fileName!!))
+            LaunchedEffect(key1 = fileName) {
+                bookDetailsViewModel.onUiEvents(DetailsUiEvents.LoadAudioBook(fileName!!))
+            }
 
             AudiobookDetailsScreen(
                 audiobook = bookDetailsViewModel.audioBook,

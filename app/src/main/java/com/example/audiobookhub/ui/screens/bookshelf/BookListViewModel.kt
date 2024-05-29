@@ -10,7 +10,6 @@ import javax.inject.Inject
 @HiltViewModel
 class BookListViewModel @Inject constructor(
     private val repository: BookRepository,
-    private val sharedPreferences: SharedPreferences
 ): ViewModel() {
     var books = repository.getBooks()
 
@@ -21,19 +20,13 @@ class BookListViewModel @Inject constructor(
                 loadBooks()
             }
             is ShelfUiEvents.SelectAudiobook -> {
-                changeCurrentBook(event.book)
+                repository.changeCurrentBook(event.book)
             }
         }
     }
 
     private fun loadBooks() {
         books = repository.getBooks()
-    }
-
-    private fun changeCurrentBook(book: AudioBook) {
-        val editor = sharedPreferences.edit()
-        editor.putString("currentBook", book.chapterFolderName)
-        editor.apply()
     }
 }
 

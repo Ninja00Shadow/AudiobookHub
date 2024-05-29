@@ -1,25 +1,48 @@
 package com.example.audiobookhub.data.repository
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.util.Log
 import androidx.core.net.toUri
 import com.example.audiobookhub.R
 import com.example.audiobookhub.data.model.AudioBook
 import com.example.audiobookhub.data.model.Chapter
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
+private val bookDummy = AudioBook(
+    "",
+    "",
+    "",
+    "",
+    3,
+    "".toUri(),
+    0,
+    0f,
+    1f,
+    "",
+    emptyList(),
+)
+
 @Singleton
 class BookRepository @Inject constructor(
-    @ApplicationContext val context: Context
-) {
+    @ApplicationContext val context: Context,
+    private val sharedPref: SharedPreferences,
+    ) {
+    val bookList = mutableListOf<AudioBook>()
+    val _currentBook = MutableStateFlow(bookDummy)
+    val currentBook: StateFlow<AudioBook> = _currentBook
+
     init {
         val bookFile = File(context.getExternalFilesDir(""), "books")
         if (!bookFile.exists()) {
@@ -111,6 +134,12 @@ class BookRepository @Inject constructor(
         copyInputStreamToFile(mountain_of_madness_raw[2], mountain_of_madness_output[2])
     }
 
+    init {
+        getBooks()
+        val currentBookName = sharedPref.getString("currentBook", null)
+        if (currentBookName != null) _currentBook.value = getBookByFolderName(currentBookName)
+    }
+
     private fun copyInputStreamToFile(inputStream: InputStream, outputStream: FileOutputStream) {
         val buffer = ByteArray(8192)
         inputStream.use { input ->
@@ -130,20 +159,21 @@ class BookRepository @Inject constructor(
     }
 
     fun getBooks(): List<AudioBook> {
-        val bookFolder = File(context.getExternalFilesDir(""), "books")
-        val books = mutableListOf<AudioBook>()
+        if (bookList.isEmpty()) {
+            val bookFolder = File(context.getExternalFilesDir(""), "books")
 
-        bookFolder.walk().forEach {
-            if (it.isFile) {
-                val book = getBook(it)
-                books.add(book)
+            bookFolder.walk().forEach {
+                if (it.isFile) {
+                    val book = getBook(it)
+                    if (!bookList.contains(book)) bookList.add(book)
+                }
             }
         }
 
-        return books
+        return bookList
     }
 
-    fun saveBookState(book: AudioBook) {
+    private fun saveBookState(book: AudioBook) {
         val bookData = File(context.getExternalFilesDir(""), "books/${book.chapterFolderName}")
         val fileWriter = bookData.bufferedWriter()
         fileWriter.write("${book.chapterFolderName}\n")
@@ -270,27 +300,34 @@ class BookRepository @Inject constructor(
     }
 
     fun updateScore(audioBook: AudioBook) {
-        val bookData = File(context.getExternalFilesDir(""), "books/${audioBook.chapterFolderName}")
-        val fileReader = bookData.bufferedReader()
-
-        fileReader.readLine()
-        fileReader.readLine()
-        fileReader.readLine()
-        fileReader.readLine()
-        fileReader.readLine()
-        val progress = fileReader.readLine().toFloat()
-        val playbackSpeed = fileReader.readLine().toFloat()
-
-        val updatedBook = audioBook.copy(progress = progress, playbackSpeed = playbackSpeed)
-        saveBookState(updatedBook)
+        if (_currentBook.value.chapterFolderName == audioBook.chapterFolderName) {
+            _currentBook.value = audioBook
+        }
+        else {
+            val book = bookList.find { it.chapterFolderName == audioBook.chapterFolderName }!!
+            bookList[bookList.indexOf(book)] = audioBook
+        }
     }
 
-    companion object {
-        private val INSTANCE: BookRepository? = null
+    fun changeCurrentBook(book: AudioBook) {
+        _currentBook.value = bookList.find { it.chapterFolderName == book.chapterFolderName }!!
+        val editor = sharedPref.edit()
+        editor.putString("currentBook", book.chapterFolderName)
+        editor.apply()
+    }
 
-        fun getInstance(context: Context): BookRepository {
-            return INSTANCE ?: BookRepository(context)
+    fun updateBook(audioBook: AudioBook) {
+        if (_currentBook.value.chapterFolderName == audioBook.chapterFolderName) {
+            _currentBook.value = audioBook
+            saveBookState(audioBook)
         }
+        else {
+            val book = bookList.find { it.chapterFolderName == audioBook.chapterFolderName }!!
+            bookList[bookList.indexOf(book)] = audioBook
+            saveBookState(audioBook)
+        }
+//        bookList.clear()
+//        getBooks()
     }
 
 }

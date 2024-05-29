@@ -1,6 +1,5 @@
 package com.example.audiobookhub.ui.screens.playerScreen
 
-import android.content.SharedPreferences
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -10,7 +9,6 @@ import androidx.compose.runtime.setValue
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.SavedStateHandleSaveableApi
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import com.example.audiobookhub.data.model.AudioBook
@@ -49,12 +47,10 @@ private val chapterDummy = Chapter(
     0
 )
 
-@OptIn(SavedStateHandleSaveableApi::class)
 @HiltViewModel
 class AudioViewModel @Inject constructor(
     private val audioServiceHandler: AudioServiceHandler,
     private val repository: BookRepository,
-    private val sharedPref: SharedPreferences,
 ) : ViewModel() {
     var isEmpty by mutableStateOf(false)
 
@@ -75,7 +71,12 @@ class AudioViewModel @Inject constructor(
     val uiState: StateFlow<UIState> = _uiState.asStateFlow()
 
     init {
-        loadAudiobook()
+        viewModelScope.launch {
+            repository.currentBook.collectLatest {
+                audioBook = it
+                loadAudiobook()
+            }
+        }
     }
 
     init {
@@ -88,31 +89,30 @@ class AudioViewModel @Inject constructor(
                     is AudioState.Progress -> {
                         calculateProgressValue(mediaState.progress)
                         audioBook.progress = bookProgress
-                        saveBookState()
+                        bookCurrentBook()
                     }
 
                     is AudioState.CurrentPlaying -> {
                         currentSelectedAudio = audioBook.chapters[mediaState.mediaItemIndex]
+
                     }
 
                     is AudioState.Ready -> {
                         chapterDuration = mediaState.duration
 
-                        bookProgress = audioBook.progress
-                        speed = audioBook.playbackSpeed
-                        initializeAudioService(bookProgress)
+//                        bookProgress = audioBook.progress
+//                        speed = audioBook.playbackSpeed
+//                        initializeAudioService(bookProgress)
 
                         _uiState.value = UIState.Ready
                     }
                 }
             }
-
-
         }
     }
 
-    private fun saveBookState() {
-        repository.saveBookState(audioBook)
+    private fun bookCurrentBook() {
+        repository.updateBook(audioBook)
     }
 
     fun getAudioBookOrNull(): AudioBook? {
@@ -122,25 +122,18 @@ class AudioViewModel @Inject constructor(
         return audioBook
     }
 
-    fun isAudioBookEmpty(): Boolean {
+    private fun isAudioBookEmpty(): Boolean {
         return audioBook == bookDummy
     }
 
     private fun loadAudiobook() {
         viewModelScope.launch {
-            val currentBook = sharedPref.getString("currentBook", null)
-            Log.d("AudioViewModel", "loadAudiobook: $currentBook")
-
-            if (currentBook == null) {
+            if (isAudioBookEmpty()) {
                 audioBook = bookDummy
                 currentSelectedAudio = chapterDummy
                 isEmpty = true
-//                setMediaItems()
             } else {
                 isEmpty = false
-                val audio = repository.getBookByFolderName(currentBook)
-                audioBook = audio
-//                currentSelectedAudio = audio.chapters.first()
                 setMediaItems()
 
                 bookDuration =
@@ -155,7 +148,7 @@ class AudioViewModel @Inject constructor(
                     audioBook.chapters[findChapterIndexByProgress(audioBook.progress)]
                 bookProgress = audioBook.progress
 
-                Log.d("AudioViewModel", "loadAudiobook: $bookProgress")
+                initializeAudioService(bookProgress)
             }
         }
     }
@@ -178,7 +171,6 @@ class AudioViewModel @Inject constructor(
                 .setMediaId(chapter.number.toString())
                 .build()
         }.also {
-            Log.d("MediaMetadata", "(PVM)mediaItem: ${it[0].mediaMetadata.displayTitle}")
             audioServiceHandler.setMediaItemList(it)
         }
     }
@@ -287,6 +279,8 @@ class AudioViewModel @Inject constructor(
         val chapterIndex = findChapterIndexByProgress(progress)
         val chapterSeekPosition = (bookDuration * progress) / 100f - chapterTimeStamps[chapterIndex]
 
+        Log.d("Performance", "initializeAudioService")
+
         audioServiceHandler.onPlayerEvents(
             PlayerEvent.InitializeWithParams,
             selectedAudioIndex = chapterIndex,
@@ -307,13 +301,10 @@ class AudioViewModel @Inject constructor(
     }
 
     fun bookChanged() {
-        Log.d("AudioViewModel", "bookChanged() called")
         loadAudiobook()
-        Log.d("AudioViewModel", "bookChanged1: $bookProgress")
-        viewModelScope.launch {
-            Log.d("AudioViewModel", "bookChanged2: $bookProgress")
-            initializeAudioService(audioBook.progress)
-        }
+//        viewModelScope.launch {
+//            initializeAudioService(audioBook.progress)
+//        }
     }
 }
 
