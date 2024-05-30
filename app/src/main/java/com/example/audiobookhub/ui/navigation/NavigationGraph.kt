@@ -142,6 +142,15 @@ fun NavigationGraph(
                 timeRemaining = playerViewModel.timeRemainingString,
                 onPlayerClick = {
                     navController.navigate(Routes.AUDIO_PLAYER_SCREEN)
+                },
+                stopPlayer = {
+                    playerViewModel.onUiEvents(UIEvents.Stop)
+                },
+                deleteBook = {
+                    bookListViewModel.onUiEvents(ShelfUiEvents.DeleteBook(bookDetailsViewModel.audioBook))
+                    playerViewModel.clearAudioBook()
+                    playerViewModel.bookChanged()
+                    navController.popBackStack()
                 }
             )
         }

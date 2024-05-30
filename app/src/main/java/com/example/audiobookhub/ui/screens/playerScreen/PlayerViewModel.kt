@@ -260,6 +260,10 @@ class AudioViewModel @Inject constructor(
                     )
                     audioBook.playbackSpeed = uiEvents.speed
                 }
+
+                UIEvents.Stop -> {
+                    audioServiceHandler.onPlayerEvents(PlayerEvent.Stop)
+                }
             }
         }
     }
@@ -306,6 +310,13 @@ class AudioViewModel @Inject constructor(
 //            initializeAudioService(audioBook.progress)
 //        }
     }
+
+    fun clearAudioBook() {
+        audioBook = bookDummy
+        currentSelectedAudio = chapterDummy
+        isEmpty = true
+    }
+
 }
 
 sealed class UIEvents {
@@ -316,6 +327,8 @@ sealed class UIEvents {
     data object Forward : UIEvents()
     data class UpdateProgress(val newProgress: Float) : UIEvents()
     data class SpeedChange(val speed: Float) : UIEvents()
+
+    data object Stop : UIEvents()
 }
 
 

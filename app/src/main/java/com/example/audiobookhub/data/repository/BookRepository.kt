@@ -141,6 +141,18 @@ class BookRepository @Inject constructor(
     }
 
     init {
+        val bookFile = File(context.getExternalFilesDir(""), "books")
+
+        bookFile.walk().forEach {
+            Log.d("BookRepository", "init: ${it.path}")
+        }
+
+        context.getExternalFilesDir("")?.walk()?.forEach {
+            Log.d("BookRepository", "init: ${it.path}")
+        }
+    }
+
+    init {
         getBooks()
         val currentBookName = sharedPref.getString("currentBook", null)
         if (currentBookName != null) _currentBook.value = getBookByFolderName(currentBookName)
@@ -351,7 +363,7 @@ class BookRepository @Inject constructor(
     }
 
     suspend fun addBook(newBook: NewBookZip) {
-        withContext(Dispatchers.IO){
+        withContext(Dispatchers.IO) {
             Log.d("BookRepository", "addBook: $newBook")
 
             val bookFolder = File(context.getExternalFilesDir(""), "books")
@@ -393,7 +405,7 @@ class BookRepository @Inject constructor(
     }
 
     suspend fun addBook(newBook: NewBookMp3) {
-        withContext(Dispatchers.IO){
+        withContext(Dispatchers.IO) {
             Log.d("BookRepository", "addBook: $newBook")
 
             val bookFolder = File(context.getExternalFilesDir(""), "books")
@@ -437,5 +449,22 @@ class BookRepository @Inject constructor(
 
             Log.d("BookRepository", "addBook: $bookList")
         }
+    }
+
+    fun deleteBook(book: AudioBook) {
+        Log.d("BookRepository", "deleteBook: $book")
+
+        if (_currentBook.value.chapterFolderName == book.chapterFolderName) {
+            val editor = sharedPref.edit()
+            editor.remove("currentBook")
+            editor.apply()
+        }
+
+        val bookFolder = File(context.getExternalFilesDir(""), book.chapterFolderName)
+        bookFolder.deleteRecursively()
+        val bookData = File(context.getExternalFilesDir(""), "books/${book.chapterFolderName}")
+
+        bookData.delete()
+        updateBookList()
     }
 }

@@ -16,13 +16,20 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -48,8 +55,12 @@ fun AudiobookDetailsScreen(
     progress: Float,
     onPlayPause: () -> Unit,
     timeRemaining: String,
-    onPlayerClick: () -> Unit
+    onPlayerClick: () -> Unit,
+    stopPlayer: () -> Unit,
+    deleteBook: () -> Unit
 ) {
+    val openDeleteDialog = remember { mutableStateOf(false) }
+
     Scaffold(
         bottomBar = {
             if (currentAudioBook != null)
@@ -98,6 +109,22 @@ fun AudiobookDetailsScreen(
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold
                     )
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    IconButton(
+                        onClick = {
+                            openDeleteDialog.value = true
+                        }
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(30.dp),
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete this book"
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(10.dp))
                 }
 
                 AsyncImage(
@@ -143,6 +170,46 @@ fun AudiobookDetailsScreen(
             }
         }
     }
+
+    if (openDeleteDialog.value) {
+        stopPlayer()
+
+        DeleteDialog(
+            onDismiss = { openDeleteDialog.value = false },
+            onDelete = deleteBook
+        )
+    }
+
+}
+
+@Composable
+fun DeleteDialog(
+    onDismiss: () -> Unit,
+    onDelete: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text("Delete this book?")
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onDelete()
+                    onDismiss()
+                }
+            ) {
+                Text("Delete")
+            }
+        },
+        dismissButton = {
+            Button(
+                onClick = onDismiss
+            ) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 @Preview
@@ -173,6 +240,8 @@ fun PreviewAudiobookDetailsScreen() {
         progress = 50f,
         onPlayPause = {},
         timeRemaining = "10h 10m",
-        onPlayerClick = {}
+        onPlayerClick = {},
+        stopPlayer = {},
+        deleteBook = {}
     )
 }

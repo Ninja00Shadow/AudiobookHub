@@ -106,7 +106,9 @@ class AudioServiceHandler @Inject constructor(
                 exoPlayer.playWhenReady = false
             }
 
-            PlayerEvent.Stop -> stopProgressUpdate()
+            PlayerEvent.Stop -> {
+                stop()
+            }
             is PlayerEvent.UpdateProgress -> {
                 exoPlayer.seekTo(
                     (exoPlayer.duration * playerEvent.newProgress).toLong()
@@ -155,6 +157,11 @@ class AudioServiceHandler @Inject constructor(
             )
             startProgressUpdate()
         }
+    }
+
+    private suspend fun stop() {
+        exoPlayer.stop()
+        stopProgressUpdate()
     }
 
     private suspend fun startProgressUpdate() = job.run {

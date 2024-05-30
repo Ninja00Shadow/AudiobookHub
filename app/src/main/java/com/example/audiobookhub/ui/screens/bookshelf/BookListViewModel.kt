@@ -22,6 +22,9 @@ class BookListViewModel @Inject constructor(
             is ShelfUiEvents.SelectAudiobook -> {
                 repository.changeCurrentBook(event.book)
             }
+            is ShelfUiEvents.DeleteBook -> {
+                repository.deleteBook(event.book)
+            }
         }
     }
 
@@ -34,4 +37,5 @@ class BookListViewModel @Inject constructor(
 sealed class ShelfUiEvents {
     data object LoadBooks : ShelfUiEvents()
     data class SelectAudiobook(val book: AudioBook) : ShelfUiEvents()
+    data class DeleteBook(val book: AudioBook) : ShelfUiEvents()
 }
