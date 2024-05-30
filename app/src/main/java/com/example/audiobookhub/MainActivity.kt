@@ -23,6 +23,7 @@ import com.example.audiobookhub.player.service.AudioService
 import com.example.audiobookhub.ui.screens.playerScreen.AudioViewModel
 import com.example.audiobookhub.ui.navigation.NavigationGraph
 import com.example.audiobookhub.ui.navigation.bottomNavigation.BottomNavigationBar
+import com.example.audiobookhub.ui.screens.addBook.AddBookScreenViewModel
 import com.example.audiobookhub.ui.screens.bookshelf.BookListViewModel
 import com.example.audiobookhub.ui.screens.details.AudiobookDetailsViewModel
 import com.example.audiobookhub.ui.theme.AudiobookHubTheme
@@ -35,6 +36,7 @@ class MainActivity : ComponentActivity() {
     private val playerViewModel: AudioViewModel by viewModels()
     private val bookListViewModel: BookListViewModel by viewModels()
     private val bookDetailsViewModel: AudiobookDetailsViewModel by viewModels()
+    private val addBookViewModel: AddBookScreenViewModel by viewModels()
     private var isServiceRunning = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,6 +67,7 @@ class MainActivity : ComponentActivity() {
                                 playerViewModel = playerViewModel,
                                 bookListViewModel = bookListViewModel,
                                 bookDetailsViewModel = bookDetailsViewModel,
+                                addBookViewModel = addBookViewModel,
                                 startService = { startService() }
                             )
                         }

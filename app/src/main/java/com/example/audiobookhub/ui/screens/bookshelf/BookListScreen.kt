@@ -18,9 +18,11 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -55,6 +57,7 @@ fun BookListScreen(
     onPlayPause: () -> Unit,
     timeRemaining: String,
     onBottomPlayerClick: () -> Unit,
+    onAddBook: () -> Unit
 ) {
     Scaffold (
         bottomBar = {
@@ -66,6 +69,18 @@ fun BookListScreen(
                     onPlayPause = onPlayPause,
                     timeRemaining = timeRemaining,
                     onClick = onBottomPlayerClick
+                )
+            }
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    onAddBook()
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add new Audiobook from files"
                 )
             }
         }
@@ -181,6 +196,7 @@ fun BookListScreenPreview() {
         isPlaying = true,
         onPlayPause = {},
         timeRemaining = "1:30:00",
-        onBottomPlayerClick = {}
+        onBottomPlayerClick = {},
+        onAddBook = {}
     )
 }

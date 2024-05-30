@@ -9,14 +9,20 @@ import android.net.Uri
 import android.util.Log
 import androidx.core.net.toUri
 import com.example.audiobookhub.R
+import com.example.audiobookhub.data.ZipHandler
 import com.example.audiobookhub.data.model.AudioBook
 import com.example.audiobookhub.data.model.Chapter
+import com.example.audiobookhub.ui.screens.addBook.NewBookMp3
+import com.example.audiobookhub.ui.screens.addBook.NewBookZip
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -38,7 +44,7 @@ private val bookDummy = AudioBook(
 class BookRepository @Inject constructor(
     @ApplicationContext val context: Context,
     private val sharedPref: SharedPreferences,
-    ) {
+) {
     val bookList = mutableListOf<AudioBook>()
     val _currentBook = MutableStateFlow(bookDummy)
     val currentBook: StateFlow<AudioBook> = _currentBook
@@ -140,6 +146,21 @@ class BookRepository @Inject constructor(
         if (currentBookName != null) _currentBook.value = getBookByFolderName(currentBookName)
     }
 
+    init {
+        Log.d("BookRepository", "main bookFolder: ${context.getExternalFilesDir("")}")
+
+        var bookFolder = File(context.getExternalFilesDir(""), "books")
+
+        bookFolder.walk().forEach {
+            Log.d("BookRepository", "bookData: ${it.path}")
+        }
+
+        bookFolder = File(context.getExternalFilesDir(""), "t")
+        bookFolder.walk().forEach {
+            Log.d("BookRepository", "init: ${it.path}")
+        }
+    }
+
     private fun copyInputStreamToFile(inputStream: InputStream, outputStream: FileOutputStream) {
         val buffer = ByteArray(8192)
         inputStream.use { input ->
@@ -156,6 +177,11 @@ class BookRepository @Inject constructor(
             }
         }
         inputStream.close()
+    }
+
+    private fun updateBookList() {
+        bookList.clear()
+        getBooks()
     }
 
     fun getBooks(): List<AudioBook> {
@@ -241,7 +267,8 @@ class BookRepository @Inject constructor(
                 val duration =
                     metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
 
-                val truckNumber = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CD_TRACK_NUMBER)
+                val truckNumber =
+                    metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CD_TRACK_NUMBER)
                 val number = truckNumber?.let { st -> getTrackNumber(st) } ?: i
 
                 val chapter = Chapter(it.toUri(), "Chapter $i", number, duration!!.toInt())
@@ -259,7 +286,8 @@ class BookRepository @Inject constructor(
         if (cover != null) {
             cover.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream)
         } else {
-            val noCover = BitmapFactory.decodeResource(context.resources, R.drawable.no_image_available)
+            val noCover =
+                BitmapFactory.decodeResource(context.resources, R.drawable.no_image_available)
             noCover.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream)
         }
         fileOutputStream.close()
@@ -302,8 +330,7 @@ class BookRepository @Inject constructor(
     fun updateScore(audioBook: AudioBook) {
         if (_currentBook.value.chapterFolderName == audioBook.chapterFolderName) {
             _currentBook.value = audioBook
-        }
-        else {
+        } else {
             val book = bookList.find { it.chapterFolderName == audioBook.chapterFolderName }!!
             bookList[bookList.indexOf(book)] = audioBook
         }
@@ -320,8 +347,7 @@ class BookRepository @Inject constructor(
         if (_currentBook.value.chapterFolderName == audioBook.chapterFolderName) {
             _currentBook.value = audioBook
             saveBookState(audioBook)
-        }
-        else {
+        } else {
             val book = bookList.find { it.chapterFolderName == audioBook.chapterFolderName }!!
             bookList[bookList.indexOf(book)] = audioBook
             saveBookState(audioBook)
@@ -330,4 +356,96 @@ class BookRepository @Inject constructor(
 //        getBooks()
     }
 
+    private fun bookTitleEncoder(title: String): String {
+        return title.replace(" ", "_").lowercase(Locale.getDefault())
+    }
+
+    suspend fun addBook(newBook: NewBookZip) {
+        withContext(Dispatchers.IO){
+            Log.d("BookRepository", "addBook: $newBook")
+
+            val bookFolder = File(context.getExternalFilesDir(""), "books")
+            if (!bookFolder.exists()) {
+                bookFolder.mkdir()
+            }
+
+            Log.d("BookRepository", "bookFolder: $bookFolder")
+
+            val chapterFolderName = bookTitleEncoder(newBook.title)
+
+            val bookData = File(bookFolder, chapterFolderName)
+            val fileWriter = bookData.bufferedWriter()
+            fileWriter.write("$chapterFolderName\n")
+            fileWriter.write("${newBook.title}\n")
+            fileWriter.write("${newBook.author}\n")
+            fileWriter.write("${newBook.narrator}\n")
+            fileWriter.write("0\n")
+            fileWriter.write("0\n")
+            fileWriter.write("1.0\n")
+            fileWriter.write("\n")
+            fileWriter.write("${newBook.description}\n")
+            fileWriter.close()
+
+            val chaptersFolder = File(context.getExternalFilesDir(""), chapterFolderName)
+            if (!chaptersFolder.exists()) {
+                chaptersFolder.mkdir()
+            }
+
+            ZipHandler.unZip(newBook.zipFilePath, chaptersFolder.absolutePath)
+
+            updateBookList()
+            val currentBookName = sharedPref.getString("currentBook", null)
+            if (currentBookName != null) _currentBook.value = getBookByFolderName(currentBookName)
+
+            Log.d("BookRepository", "addBook: $bookList")
+        }
+
+    }
+
+    suspend fun addBook(newBook: NewBookMp3) {
+        withContext(Dispatchers.IO){
+            Log.d("BookRepository", "addBook: $newBook")
+
+            val bookFolder = File(context.getExternalFilesDir(""), "books")
+            if (!bookFolder.exists()) {
+                bookFolder.mkdir()
+            }
+
+            Log.d("BookRepository", "bookFolder: $bookFolder")
+
+            val chapterFolderName = bookTitleEncoder(newBook.title)
+
+            val bookData = File(bookFolder, chapterFolderName)
+            val fileWriter = bookData.bufferedWriter()
+            fileWriter.write("$chapterFolderName\n")
+            fileWriter.write("${newBook.title}\n")
+            fileWriter.write("${newBook.author}\n")
+            fileWriter.write("${newBook.narrator}\n")
+            fileWriter.write("0\n")
+            fileWriter.write("0\n")
+            fileWriter.write("1.0\n")
+            fileWriter.write("\n")
+            fileWriter.write("${newBook.description}\n")
+            fileWriter.close()
+
+            val chaptersFolder = File(context.getExternalFilesDir(""), chapterFolderName)
+            if (!chaptersFolder.exists()) {
+                chaptersFolder.mkdir()
+            }
+
+            val filePaths = newBook.mp3FilePaths
+
+            filePaths.forEach { filePath ->
+                val file = File(filePath)
+                val chapterFile = File(chaptersFolder, file.name)
+                file.copyTo(chapterFile)
+            }
+
+            updateBookList()
+            val currentBookName = sharedPref.getString("currentBook", null)
+            if (currentBookName != null) _currentBook.value = getBookByFolderName(currentBookName)
+
+            Log.d("BookRepository", "addBook: $bookList")
+        }
+    }
 }

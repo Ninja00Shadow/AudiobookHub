@@ -8,6 +8,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.audiobookhub.ui.screens.addBook.AddBookScreen
+import com.example.audiobookhub.ui.screens.addBook.AddBookScreenViewModel
 import com.example.audiobookhub.ui.screens.bookshelf.BookListScreen
 import com.example.audiobookhub.ui.screens.bookshelf.BookListViewModel
 import com.example.audiobookhub.ui.screens.bookshelf.ShelfUiEvents
@@ -25,6 +27,7 @@ fun NavigationGraph(
     playerViewModel: AudioViewModel,
     bookListViewModel: BookListViewModel,
     bookDetailsViewModel: AudiobookDetailsViewModel,
+    addBookViewModel: AddBookScreenViewModel,
     startService: () -> Unit
 ) {
 
@@ -39,11 +42,11 @@ fun NavigationGraph(
                 progress = playerViewModel.bookProgress,
                 onProgress = {
                     playerViewModel.onUiEvents(UIEvents.SeekTo(it))
-                             },
+                },
                 speed = playerViewModel.speed,
                 onSpeedChange = {
                     playerViewModel.onUiEvents(UIEvents.SpeedChange(it))
-                                },
+                },
                 chapterRemaining = playerViewModel.chapterRemainingTimeString,
                 timeElapsed = playerViewModel.timeElapsedString,
                 timeRemaining = playerViewModel.timeRemainingString,
@@ -99,6 +102,9 @@ fun NavigationGraph(
                 timeRemaining = playerViewModel.timeRemainingString,
                 onBottomPlayerClick = {
                     navController.navigate(Routes.AUDIO_PLAYER_SCREEN)
+                },
+                onAddBook = {
+                    navController.navigate(Routes.ADD_BOOK_SCREEN)
                 }
             )
         }
@@ -137,6 +143,22 @@ fun NavigationGraph(
                 onPlayerClick = {
                     navController.navigate(Routes.AUDIO_PLAYER_SCREEN)
                 }
+            )
+        }
+
+        composable(
+            Routes.ADD_BOOK_SCREEN
+        ) {
+            AddBookScreen(
+                newBook = addBookViewModel.newBook.value,
+                fileType = addBookViewModel.fileType.value,
+                filesPath = addBookViewModel.filePaths,
+                goBack = {
+                    navController.popBackStack()
+                },
+                onUiEvents = {
+                    addBookViewModel.onUiEvents(it)
+                },
             )
         }
 
