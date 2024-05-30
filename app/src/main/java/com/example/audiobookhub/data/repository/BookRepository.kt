@@ -146,21 +146,6 @@ class BookRepository @Inject constructor(
         if (currentBookName != null) _currentBook.value = getBookByFolderName(currentBookName)
     }
 
-    init {
-        Log.d("BookRepository", "main bookFolder: ${context.getExternalFilesDir("")}")
-
-        var bookFolder = File(context.getExternalFilesDir(""), "books")
-
-        bookFolder.walk().forEach {
-            Log.d("BookRepository", "bookData: ${it.path}")
-        }
-
-        bookFolder = File(context.getExternalFilesDir(""), "t")
-        bookFolder.walk().forEach {
-            Log.d("BookRepository", "init: ${it.path}")
-        }
-    }
-
     private fun copyInputStreamToFile(inputStream: InputStream, outputStream: FileOutputStream) {
         val buffer = ByteArray(8192)
         inputStream.use { input ->
@@ -271,12 +256,17 @@ class BookRepository @Inject constructor(
                     metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CD_TRACK_NUMBER)
                 val number = truckNumber?.let { st -> getTrackNumber(st) } ?: i
 
-                val chapter = Chapter(it.toUri(), "Chapter $i", number, duration!!.toInt())
+                val chapter = Chapter(it.toUri(), "Chapter $number", number, duration!!.toInt())
                 i++;
 
                 chapters.add(chapter)
             }
         }
+
+        chapters.sortBy { it.number }
+
+        Log.d("BookRepository", "getBookChapters: $chapters")
+
         return chapters
     }
 
